@@ -1,0 +1,9 @@
+saisun_robot:
+
+  saisun_ip: "172.16.1.30"
+
+  saisun_port: 9999
+
+  use_net_sequence: False
+
+  algorithm_version: "0.1"

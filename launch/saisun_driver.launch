@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+    <rosparam command="load" file="$(find saisun_driver)/config/config.yaml"/>
+    <node name="saisun_driver" pkg="saisun_driver" type="saisun_driver" 
+          ns="saisun_robot" output="screen"/>
+    
+</launch>
