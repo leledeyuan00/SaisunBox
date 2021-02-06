@@ -53,9 +53,10 @@ private:
     std::vector<float> robot_pose_;
 
     bool is_new_message_;
-    uint8_t recieve_body_[8];
+    uint8_t receive_body_[8];
 
     void robot_pose_cmd(void);
+    void heart_beat(void);
     void run();
 
 public:
@@ -68,7 +69,7 @@ public:
     void set_use_net_sequence(bool isuse);
     void get_robot_state(std::vector<float> &robot_pose);
 
-    bool get_robot_cmd_(receiveMessageTypes &cmd, std::vector<uint8_t> &msg);
+    bool get_robot_cmd_(receiveMessageTypes &cmd, uint8_t *msg);
 
     void start();
     void halt();

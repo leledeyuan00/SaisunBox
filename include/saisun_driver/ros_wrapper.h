@@ -5,6 +5,9 @@
 
 #include "geometry_msgs/Twist.h"
 
+using namespace receive_message_types;
+using namespace send_message_types;
+
 class SaisunWrapper
 {
 public:
@@ -21,7 +24,8 @@ private:
     sendMessageTypes send_type_;
     ros::NodeHandle nh_;
 
-    ros::Publisher robot_pose_pub_;    
+    ros::Publisher robot_pose_pub_;
+    bool robot_pose_init_;
 
     std::string host_;
     unsigned int port_;
@@ -34,6 +38,8 @@ private:
 
     void ros_init(void);
     void init(void);
+
+    void action_start(void);
 
     void parse_robot_pos(void);
     void publish_msgs(void);

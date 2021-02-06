@@ -48,7 +48,7 @@ void SaisunState::unpack(uint8_t * buf, unsigned int buf_len)
     receiveMessageTypes receive_type;
     sendMessageTypes send_type;
     unsigned int offset = 0;
-    bzero(recieve_body_,8);
+    bzero(receive_body_,8);
 
     is_new_message_ = true;
 
@@ -61,8 +61,34 @@ void SaisunState::unpack(uint8_t * buf, unsigned int buf_len)
     }
     memcpy(&temp[0],&len,sizeof(buf_len));
     
-
-    memcpy(recieve_body_,&buf[16],(buf_len - 16))
+    if (temp[1] == 0x01) // robot req
+    {
+        switch ((receiveMessageTypes)temp[0])
+        {
+        case receiveMessageTypes::GET_SYNC:
+        {
+            heart_beat();
+            break;
+        }
+        case receiveMessageTypes::GET_POSE:
+        {
+            offset = 16;
+            while ((offset + sizeof(len)) <= buf_len)
+            {
+                
+            }
+            
+            break;
+        }
+        default:
+        {
+            memcpy(receive_body_,&buf[16],(buf_len - 16));
+            is_new_message_ = true;
+            break;
+        }
+        }
+    }
+    
     
     // head
     // unsigned int len;
@@ -124,13 +150,14 @@ void SaisunState::get_robot_state(std::vector<float> &robot_pose)
     return;
 }
 
-bool SaisunState::get_robot_cmd_(receiveMessageTypes &cmd, std::vector<uint8_t> &msg)
+bool SaisunState::get_robot_cmd_(receiveMessageTypes &cmd, uint8_t *msg)
 {
     bool is_new_message = is_new_message_;
     is_new_message_ = false;
-    cmd = receive_type_;
-    
-    
-
+    if(is_new_message)
+    {
+        cmd = receive_type_;
+        memcpy(msg,receive_body_,8);
+    }
     return is_new_message;
 }
