@@ -6,6 +6,8 @@ SaisunState::SaisunState(std::string host, unsigned int port)
     robot_version_.minor_version = 0;
     use_net_sequence_ = false;
 
+    robot_pose_.resize(6);
+
     saisunCom_.reset(new SaisunCom(host,port));
 }
 
@@ -46,6 +48,9 @@ void SaisunState::unpack(uint8_t * buf, unsigned int buf_len)
     receiveMessageTypes receive_type;
     sendMessageTypes send_type;
     unsigned int offset = 0;
+    bzero(recieve_body_,8);
+
+    is_new_message_ = true;
 
     uint8_t temp[buf_len];
     unsigned int len;
@@ -57,6 +62,7 @@ void SaisunState::unpack(uint8_t * buf, unsigned int buf_len)
     memcpy(&temp[0],&len,sizeof(buf_len));
     
 
+    memcpy(recieve_body_,&buf[16],(buf_len - 16))
     
     // head
     // unsigned int len;
@@ -109,13 +115,22 @@ void SaisunState::set_use_net_sequence(bool isuse)
     use_net_sequence_ = isuse;
 }
 
-bool SaisunState::get_robot_state(void)
+void SaisunState::get_robot_state(std::vector<float> &robot_pose)
 {
-    // ROS_INFO("Trying send cmd to get robot state");
-    return true;
+    for (size_t i = 0; i < sizeof(robot_pose_); i++)
+    {
+        robot_pose[i] = robot_pose_[i];
+    }
+    return;
 }
 
-receiveMessageTypes SaisunState::get_robot_cmd_(void)
+bool SaisunState::get_robot_cmd_(receiveMessageTypes &cmd, std::vector<uint8_t> &msg)
 {
-    return receive_type_;
+    bool is_new_message = is_new_message_;
+    is_new_message_ = false;
+    cmd = receive_type_;
+    
+    
+
+    return is_new_message;
 }

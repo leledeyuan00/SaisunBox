@@ -3,6 +3,8 @@
 
 #include "saisun_state.h"
 
+#include "geometry_msgs/Twist.h"
+
 class SaisunWrapper
 {
 public:
@@ -14,18 +16,27 @@ public:
 
 private:
     std::shared_ptr<SaisunState> saisunState_;
+    std::shared_ptr<SaisunCom> saisunCom_;
+    receiveMessageTypes receive_type_;
+    sendMessageTypes send_type_;
     ros::NodeHandle nh_;
+
+    ros::Publisher robot_pose_pub_;    
 
     std::string host_;
     unsigned int port_;
     std::string algorithm_version_;
     bool use_net_sequence_;
 
+    geometry_msgs::Twist robot_pos_; 
+
     std::shared_ptr<std::thread> control_loop_thread_;
 
     void ros_init(void);
     void init(void);
 
+    void parse_robot_pos(void);
+    void publish_msgs(void);
     void control_loop(void);
 };
 

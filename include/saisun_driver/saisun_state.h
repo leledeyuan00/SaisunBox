@@ -48,21 +48,27 @@ private:
     receiveMessageTypes receive_type_;
     sendMessageTypes send_type_;
 
-    std::shared_ptr<SaisunCom> saisunCom_;
-
     std::thread comThread_;
 
+    std::vector<float> robot_pose_;
+
+    bool is_new_message_;
+    uint8_t recieve_body_[8];
+
+    void robot_pose_cmd(void);
     void run();
 
 public:
+    std::shared_ptr<SaisunCom> saisunCom_;
+
     SaisunState(std::string host, unsigned port);
     void unpack(uint8_t * buf,unsigned int buf_len);
 
     bool set_algorithm_version(std::string ver);
     void set_use_net_sequence(bool isuse);
-    bool get_robot_state(void);
+    void get_robot_state(std::vector<float> &robot_pose);
 
-    receiveMessageTypes get_robot_cmd_(void);
+    bool get_robot_cmd_(receiveMessageTypes &cmd, std::vector<uint8_t> &msg);
 
     void start();
     void halt();
