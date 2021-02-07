@@ -88,7 +88,6 @@ bool SaisunCom::isConnect(uint8_t * buf,int * bytes_read)
 		if (*bytes_read > 0) {
 			setsockopt(sockfd_, IPPROTO_TCP, TCP_QUICKACK,
 					(char *) &flag_, sizeof(int));
-			ROS_INFO("%x %x %x %x ",buf[0],buf[1],buf[2],buf[3]);
 			return true;
 		} else {
 			connected_ = false;

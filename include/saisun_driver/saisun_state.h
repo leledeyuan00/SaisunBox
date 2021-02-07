@@ -13,10 +13,10 @@
 
 namespace receive_message_types{
 enum receive_message_types{
-    GET_SYNC = 0x21,
-    GET_INIT = 0x22,
-    GET_TRIG = 0x23,
-    GET_DATA = 0x24,
+    GET_SYNC = 0x20,
+    GET_INIT = 0x21,
+    GET_TRIG = 0x24,
+    GET_DATA = 0x23,
     GET_POSE = 0x40,
 };
 }
@@ -24,14 +24,24 @@ typedef receive_message_types::receive_message_types receiveMessageTypes;
 
 namespace send_message_types{
 enum send_message_types{
-    SEND_SYNC = 0x51,
-    SEND_INIT = 0x52,
-    SEND_TRIG = 0x53,
-    SEND_DATA = 0x54,
+    SEND_SYNC = 0x50,
+    SEND_INIT = 0x51,
+    SEND_TRIG = 0x54,
+    SEND_DATA = 0x53,
     SEND_POSE = 0x30,
 };
 }
 typedef send_message_types::send_message_types sendMessageTypes;
+
+namespace vision_state_types{
+enum vision_state_types{
+    VISION_OK    = 0x00,
+    VISION_ERROR = 0x01,
+    CAMERA_ERROR = 0x02,
+    OTHER_ERROR  = 0xff,
+};
+}
+typedef vision_state_types::vision_state_types visionStateTypes;
 
 struct version_message{
     uint16_t major_version;
@@ -41,12 +51,14 @@ struct version_message{
 class SaisunState
 {
 private:
+
     version_message robot_version_;
     version_message algorithm_version_;
     bool use_net_sequence_;
 
     receiveMessageTypes receive_type_;
     sendMessageTypes send_type_;
+    visionStateTypes vision_state_;
 
     std::thread comThread_;
 
