@@ -1,9 +1,13 @@
 #ifndef ROS_WRAPPER_H_
 #define ROS_WRAPPER_H_
 
+#include "ros/ros.h"
 #include "saisun_state.h"
-
 #include "geometry_msgs/Twist.h"
+#include "actionlib/client/simple_action_client.h"
+#include "saisun_msgs/InitialAction.h"
+#include "saisun_msgs/TriggerAction.h"
+#include "saisun_msgs/GetResultAction.h"
 
 using namespace receive_message_types;
 using namespace send_message_types;
@@ -22,9 +26,13 @@ private:
     std::shared_ptr<SaisunCom> saisunCom_;
     receiveMessageTypes receive_type_;
     sendMessageTypes send_type_;
-    ros::NodeHandle nh_;
 
+    ros::NodeHandle nh_;
     ros::Publisher robot_pose_pub_;
+    std::shared_ptr<actionlib::SimpleActionClient<saisun_msgs::InitialAction>>   saisun_init_ac_;
+    std::shared_ptr<actionlib::SimpleActionClient<saisun_msgs::TriggerAction>>   saisun_trig_ac_;
+    std::shared_ptr<actionlib::SimpleActionClient<saisun_msgs::GetResultAction>> saisun_result_ac_;
+
     bool robot_pose_init_;
 
     std::string host_;
@@ -40,6 +48,10 @@ private:
     void init(void);
 
     void action_start(void);
+    void initial_ac_cb(const actionlib::SimpleClientGoalState& state,
+                       const saisun_msgs::InitialResultConstPtr& result);
+    void trigger_ac_cb(void);
+    void result_ac_cb(void);
 
     void parse_robot_pos(void);
     void publish_msgs(void);

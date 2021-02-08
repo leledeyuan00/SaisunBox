@@ -34,7 +34,7 @@ bool SaisunCom::start() {
 
 	fd_set writefds;
 	struct timeval timeout;
-
+	std::cout << "Saisun Robot: Connecting ..." << std::endl;
 	connect(sockfd_, (struct sockaddr *) &sec_serv_addr_,
 			sizeof(sec_serv_addr_));
 	FD_ZERO(&writefds);
@@ -42,23 +42,34 @@ bool SaisunCom::start() {
 
 	timeout.tv_sec = 10;
 	timeout.tv_usec = 0;
-	select(sockfd_ + 1, NULL, &writefds, NULL, &timeout);
+
+	bool success = select(sockfd_ + 1, NULL, &writefds, NULL, &timeout) > 0 ? true : false;
+	
+	
 	unsigned int flag_len;
 	getsockopt(sockfd_, SOL_SOCKET, SO_ERROR, &flag_, &flag_len);
 	if (flag_ < 0) {
 		std::cout <<"Error connecting to Saisun Robot" << std::endl;
 		return false;
 	}
-	std::cout << "Saisun Robot: Got connection" << std::endl;
+	if (!success)
+	{
+		std::cout << "Saisun Robot: Connecting timeout, try to reconnect." << std::endl;
+	}else
+	{
+		std::cout << "Saisun Robot: Got connection" << std::endl;
+	}
 		
 	FD_ZERO(&readfds_);
 	FD_SET(sockfd_, &readfds_);
 	connected_ = true;
-	return true;
+	return success;
+
 }
 
 void SaisunCom::halt() {
 	keepalive_ = false;
+	shutdown(sockfd_,SHUT_RDWR);
 }
 
 void SaisunCom::write_sock(uint8_t *buf, unsigned int buf_len)
@@ -103,7 +114,7 @@ bool SaisunCom::reconnect(void)
 {
 
 	//reconnect
-	std::cout << "Saisun Robot: No connection. Is controller crashed? Will try to reconnect in 10 seconds..." << std::endl;
+	std::cout << "Saisun Robot: No connection. Is controller crashed? Will try to reconnect in 5 seconds..." << std::endl;
 	sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd_ < 0) {
 		std::cout << ("ERROR opening Saisun Robot socket") << std::endl;
@@ -117,7 +128,7 @@ bool SaisunCom::reconnect(void)
 			sizeof(int));
 	fcntl(sockfd_, F_SETFL, O_NONBLOCK);
 	if (keepalive_ && !connected_) {
-		std::this_thread::sleep_for(std::chrono::seconds(10)); // 10s dela
+		std::this_thread::sleep_for(std::chrono::seconds(5)); // 5s dela
 		fd_set writefds;
 
 		connect(sockfd_, (struct sockaddr *) &sec_serv_addr_,
@@ -129,7 +140,7 @@ bool SaisunCom::reconnect(void)
 		getsockopt(sockfd_, SOL_SOCKET, SO_ERROR, &flag_,
 				&flag_len);
 		if (flag_ < 0) {
-			std::cout << ("Error re-connecting to port 9999. Is controller started? Will try to reconnect in 10 seconds...") << std::endl;
+			std::cout << ("Error re-connecting to port 9999. Is controller started? Will try to reconnect in 5 seconds...") << std::endl;
 		} else {
 			connected_ = true;
 			FD_ZERO(&readfds_);
@@ -158,7 +169,6 @@ bool SaisunCom::reconnect(void)
 // 			if (bytes_read > 0) {
 // 				setsockopt(sockfd_, IPPROTO_TCP, TCP_QUICKACK,
 // 						(char *) &flag_, sizeof(int));
-// 				ROS_INFO("");
 // 			} else {
 // 				connected_ = false;
 // 				close(sockfd_);

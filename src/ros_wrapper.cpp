@@ -21,7 +21,7 @@ void SaisunWrapper::ros_init(void)
     port_ = port;
     if (!nh_.getParam("use_net_sequence", use_net_sequence_))
         { ROS_ERROR("No use_net_sequence param"); 
-        use_net_sequence_ = true;
+        use_net_sequence_ = false;
     }
     if (!nh_.getParam("algorithm_version", algorithm_version_))
         { ROS_ERROR("No algorithm_version param");
@@ -29,13 +29,17 @@ void SaisunWrapper::ros_init(void)
     }
 
     robot_pose_pub_ = nh_.advertise<geometry_msgs::Twist>("/saisun_pose", 10);
+    
+    saisun_init_ac_.reset(new actionlib::SimpleActionClient<saisun_msgs::InitialAction>("saisun_robot_initial",true));
+    saisun_trig_ac_.reset(new actionlib::SimpleActionClient<saisun_msgs::TriggerAction>("saisun_robot_trigger",true));
+    saisun_result_ac_.reset(new actionlib::SimpleActionClient<saisun_msgs::GetResultAction>("saisun_robot_get_result",true));
+    
     robot_pose_init_ = false;
 }
 
 void SaisunWrapper::init(void)
 {
     saisunState_.reset(new SaisunState(host_,port_));
-    saisunState_->set_use_net_sequence(use_net_sequence_);
     saisunState_->set_algorithm_version(algorithm_version_);
 
     saisunCom_ = saisunState_->saisunCom_;
@@ -59,7 +63,8 @@ void SaisunWrapper::parse_robot_pos(void)
 {
     std::vector<float> robot_pos;
     robot_pos.resize(6);
-    saisunState_->get_robot_state(robot_pos);
+    
+    robot_pose_init_ = saisunState_->get_robot_pose(robot_pos);
 
     robot_pos_.linear.x  = (double)robot_pos[0];
     robot_pos_.linear.y  = (double)robot_pos[1];
@@ -68,7 +73,6 @@ void SaisunWrapper::parse_robot_pos(void)
     robot_pos_.angular.y = (double)robot_pos[4];
     robot_pos_.angular.z = (double)robot_pos[5];
 
-    robot_pose_init_ = true;
 }
 
 void SaisunWrapper::publish_msgs(void)
@@ -80,24 +84,23 @@ void SaisunWrapper::action_start(void)
 {
     switch (receive_type_)
     {
-    case GET_INIT:
+    case receiveMessageTypes::GET_INIT:
     {
-
+        saisun_msgs::InitialActionGoal init_goal;
+        saisun_init_ac_.
+        ROS_INFO("in init");
         break;
     }
-    case GET_TRIG:
+    case receiveMessageTypes::GET_TRIG:
     {
+        ROS_INFO("in trig");
         break;
     }
-    case GET_DATA:
+    case receiveMessageTypes::GET_DATA:
     {
+        ROS_INFO("in data");
         break;
-    }
-    case GET_POSE:
-    {
-        break;
-    }
-    
+    }    
     default:
         break;
     }
@@ -110,13 +113,12 @@ void SaisunWrapper::control_loop(void)
     {
         bzero(msg_body,8);
         // robot state
-        
+        parse_robot_pos();
         // cmd
-        if(saisunState_->get_robot_cmd_(receive_type_,msg_body))
+        if(saisunState_->get_robot_cmd(receive_type_,msg_body))
         {
             action_start();
         }
-
         // pub
         if(robot_pose_init_){
             publish_msgs();
@@ -138,7 +140,7 @@ int main(int argc, char* argv[])
     spinner.start();
 
     ros::waitForShutdown();
-
+    std::cout << "I'm in ending" << std::endl;
     saisun_wrapper.halt();
 
     return 0;    
