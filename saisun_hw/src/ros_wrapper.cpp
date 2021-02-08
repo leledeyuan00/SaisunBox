@@ -87,7 +87,6 @@ void SaisunWrapper::action_start(void)
     case receiveMessageTypes::GET_INIT:
     {
         saisun_msgs::InitialActionGoal init_goal;
-        saisun_init_ac_.
         ROS_INFO("in init");
         break;
     }
