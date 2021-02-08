@@ -1,0 +1,16 @@
+uint8 scene_group
+---
+# 0x00: ok
+# 0x01: detection error
+# 0x02: device error
+# 0xff: other error
+uint8 detection_state
+# range : 0 - 1
+uint8 return_scene_group
+uint8 object_num
+
+# object position
+geometry_msgs/Twist[] object_pos
+# reserved unused
+uint32[] position_filed
+---
