@@ -15,7 +15,7 @@ SaisunState::SaisunState(std::string host, uint32_t port)
     req_pose_type_.frame_type = 0x00;
     req_pose_type_.ex_joint_num = 0x00;
 
-    vision_state_ = VISION_OK;
+    vision_state_ = OTHER_ERROR;
 
     robot_pose_.resize(6);
 

@@ -80,6 +80,13 @@ void SaisunWrapper::publish_msgs(void)
     robot_pose_pub_.publish(robot_pos_);
 }
 
+// action callback
+void SaisunWrapper::initial_ac_cb(const actionlib::SimpleClientGoalState& state,
+                                  const saisun_msgs::InitialResultConstPtr& result)
+{
+    ROS_INFO("I'm in initial ac callback, success is %d", result->success);
+}
+
 void SaisunWrapper::action_start(void)
 {
     switch (receive_type_)
@@ -87,11 +94,32 @@ void SaisunWrapper::action_start(void)
     case receiveMessageTypes::GET_INIT:
     {
         saisun_msgs::InitialActionGoal init_goal;
+        actionlib::SimpleClientGoalState::StateEnum server_state;
+        server_state = saisun_init_ac_->getState().state_;
+        ROS_INFO("RETUREN STATUS IS %d, ACTION CONNECT %d",server_state,saisun_init_ac_->isServerConnected());
+        if (!saisun_init_ac_->isServerConnected())
+        {
+            if (server_state!= actionlib::SimpleClientGoalState::LOST)
+            {
+                saisun_init_ac_->stopTrackingGoal();
+            }
+            
+            ROS_INFO("not connect");
+            break;
+        }
+        
+        if (server_state != actionlib::SimpleClientGoalState::PENDING)
+        {
+            saisun_init_ac_->sendGoal(init_goal.goal,bind(&SaisunWrapper::initial_ac_cb,this,_1,_2));
+            /* code */
+        }
+        
         ROS_INFO("in init");
         break;
     }
     case receiveMessageTypes::GET_TRIG:
     {
+        // saisun_msgs::
         ROS_INFO("in trig");
         break;
     }
@@ -108,6 +136,10 @@ void SaisunWrapper::action_start(void)
 void SaisunWrapper::control_loop(void)
 {
     uint8_t msg_body[8];
+    saisun_init_ac_->waitForServer();
+    // saisun_trig_ac_->waitForServer();
+    // saisun_result_ac_->waitForServer();
+    // TODO: ADD set vision state public funciton in state cpp
     while (ros::ok())
     {
         bzero(msg_body,8);

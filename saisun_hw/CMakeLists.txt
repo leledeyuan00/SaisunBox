@@ -156,6 +156,14 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
+
+add_executable(vision_server_test test/vision_server.cpp
+
+)
+
+target_link_libraries(vision_server_test
+  ${catkin_LIBRARIES}
+)
 #############
 ## Install ##
 #############
