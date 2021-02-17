@@ -3,14 +3,13 @@
 
 #include "ros/ros.h"
 #include "saisun_state.h"
-#include "geometry_msgs/Twist.h"
 #include "actionlib/client/simple_action_client.h"
 #include "saisun_msgs/InitialAction.h"
 #include "saisun_msgs/TriggerAction.h"
 #include "saisun_msgs/GetResultAction.h"
+#include "saisun_msgs/RobotPose.h"
+#include "saisun_msgs/ObjectPose.h"
 
-using namespace receive_message_types;
-using namespace send_message_types;
 
 class SaisunWrapper
 {
@@ -26,6 +25,8 @@ private:
     std::shared_ptr<SaisunCom> saisunCom_;
     receiveMessageTypes receive_type_;
     sendMessageTypes send_type_;
+    uint8_t receive_msg_body_[8];
+
 
     ros::NodeHandle nh_;
     ros::Publisher robot_pose_pub_;
@@ -40,7 +41,7 @@ private:
     std::string algorithm_version_;
     bool use_net_sequence_;
 
-    geometry_msgs::Twist robot_pos_; 
+    saisun_msgs::RobotPose robot_pos_; 
 
     std::shared_ptr<std::thread> control_loop_thread_;
 
@@ -50,12 +51,16 @@ private:
     void action_start(void);
     void initial_ac_cb(const actionlib::SimpleClientGoalState& state,
                        const saisun_msgs::InitialResultConstPtr& result);
-    void trigger_ac_cb(void);
-    void result_ac_cb(void);
+    void trigger_ac_cb(const actionlib::SimpleClientGoalState& state,
+                       const saisun_msgs::TriggerResultConstPtr& result);
+    void result_ac_cb(const actionlib::SimpleClientGoalState& state,
+                      const saisun_msgs::GetResultResultConstPtr& result);
 
     void parse_robot_pos(void);
     void publish_msgs(void);
     void control_loop(void);
+
+    void wait_vision_node(void);
 };
 
 

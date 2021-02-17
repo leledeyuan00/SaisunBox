@@ -262,3 +262,8 @@ bool SaisunState::get_robot_cmd(receiveMessageTypes &cmd, uint8_t *msg)
     }
     return is_new_message;
 }
+
+void SaisunState::set_vision_state(visionStateTypes vs)
+{
+    vision_state_ = vs;
+}

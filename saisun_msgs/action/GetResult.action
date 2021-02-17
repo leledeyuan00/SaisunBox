@@ -10,7 +10,6 @@ uint8 return_scene_group
 uint8 object_num
 
 # object position
-geometry_msgs/Twist[] object_pos
-# reserved unused
-uint32[] position_filed
+ObjectPose[] object_pos
+
 ---

@@ -27,6 +27,7 @@ enum send_message_types{
     SEND_INIT = 0x51,
     SEND_TRIG = 0x54,
     SEND_DATA = 0x53,
+    SEND_ERROR= 0XFF,
     SEND_POSE = 0x30,
 };
 }
@@ -91,13 +92,13 @@ public:
     bool set_algorithm_version(std::string ver);
     void set_req_pose_type(reqPoseType req);
     void set_use_net_sequence(bool isuse);
+    void set_vision_state(visionStateTypes vs);
 
     bool get_robot_pose(std::vector<float> &robot_pose);
     bool get_robot_cmd(receiveMessageTypes &cmd, uint8_t *msg);
 
     void start();
     void halt();
-    // virtual void req_messure(uint8_t method, uint8_t * res);
 };
 
 

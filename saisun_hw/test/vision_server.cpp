@@ -20,9 +20,11 @@ private:
     actionlib::SimpleActionServer<saisun_msgs::InitialAction> as_;
     std::string action_name_;
 
+
     // create action result
     saisun_msgs::InitialResult result_;
 
+    void ros_init();
     void initial_execute_cb(const saisun_msgs::InitialGoalConstPtr & goal);
 };
 
@@ -30,6 +32,7 @@ private:
 void visionServer::initial_execute_cb(const saisun_msgs::InitialGoalConstPtr & goal)
 {
     ROS_INFO("I'm in action call begin");
+    // If init success, set result = true otherwise false.
     result_.success = true;
     ros::Duration(2).sleep();
     ROS_INFO("I'm in action call end");
