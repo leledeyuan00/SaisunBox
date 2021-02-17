@@ -43,13 +43,12 @@ void SaisunWrapper::init(void)
     saisunState_->set_algorithm_version(algorithm_version_);
 
     saisunCom_ = saisunState_->saisunCom_;
-
-    control_loop_thread_.reset(new std::thread(
-        boost::bind(&SaisunWrapper::control_loop,this)));
 }
 
 void SaisunWrapper::start(void)
 {
+    control_loop_thread_.reset(new std::thread(
+        boost::bind(&SaisunWrapper::control_loop,this)));
     saisunState_->start();
 }
 
@@ -146,9 +145,12 @@ void SaisunWrapper::result_ac_cb(const actionlib::SimpleClientGoalState& state,
     saisunState_->pack(sendMessageTypes::SEND_DATA,msg_body,body_len);
 }
 
-void SaisunWrapper::action_start(void)
+void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
 {
-    switch (receive_type_)
+    receiveMessageTypes receive_type = cmd;
+    uint8_t msg_body[8];
+    memcpy(msg_body,msg,8);
+    switch (receive_type)
     {
     case receiveMessageTypes::GET_INIT:
     {
@@ -188,10 +190,10 @@ void SaisunWrapper::action_start(void)
         }
         if (server_state != actionlib::SimpleClientGoalState::PENDING)
         {
-            trig_goal.trigger = receive_msg_body_[0];
-            trig_goal.scene_group = receive_msg_body_[1];
-            memcpy(&trig_goal.scene,&receive_msg_body_[4],sizeof(uint16_t));
-            saisun_trig_ac_->sendGoal(trig_goal,bind(&SaisunWrapper::initial_ac_cb,this,_1,_2));
+            trig_goal.trigger = msg_body[0];
+            trig_goal.scene_group = msg_body[1];
+            memcpy(&trig_goal.scene,&msg_body[4],sizeof(uint16_t));
+            saisun_trig_ac_->sendGoal(trig_goal,bind(&SaisunWrapper::trigger_ac_cb,this,_1,_2));
         }
         ROS_INFO("in trig");
         break;
@@ -212,8 +214,8 @@ void SaisunWrapper::action_start(void)
         }
         if (server_state != actionlib::SimpleClientGoalState::PENDING)
         {
-            result_goal.scene_group = receive_msg_body_[1];
-            saisun_result_ac_->sendGoal(result_goal,bind(&SaisunWrapper::initial_ac_cb,this,_1,_2));
+            result_goal.scene_group = msg_body[1];
+            saisun_result_ac_->sendGoal(result_goal,bind(&SaisunWrapper::result_ac_cb,this,_1,_2));
         }
         break;
     }    
@@ -244,7 +246,7 @@ void SaisunWrapper::control_loop(void)
         // cmd
         if(saisunState_->get_robot_cmd(receive_type_,receive_msg_body_))
         {
-            action_start();
+            action_start(receive_type_,receive_msg_body_);
         }
         // pub
         if(robot_pose_init_){

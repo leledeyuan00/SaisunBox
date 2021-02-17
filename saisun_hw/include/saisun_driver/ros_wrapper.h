@@ -48,7 +48,7 @@ private:
     void ros_init(void);
     void init(void);
 
-    void action_start(void);
+    void action_start(receiveMessageTypes cmd, uint8_t *msg);
     void initial_ac_cb(const actionlib::SimpleClientGoalState& state,
                        const saisun_msgs::InitialResultConstPtr& result);
     void trigger_ac_cb(const actionlib::SimpleClientGoalState& state,
