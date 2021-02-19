@@ -125,22 +125,24 @@ void SaisunWrapper::result_ac_cb(const actionlib::SimpleClientGoalState& state,
     msg_body[1] = result->return_scene_group;
     msg_body[2] = object_num;
 
+    size_t offset = 4;
+
     for (size_t num = 0; num < object_pose.size(); num++)
     {
         // linear
-        memcpy(&msg_body[num * 64 + 0*4],&object_pose[num].o_linear.x,sizeof(float)); 
-        memcpy(&msg_body[num * 64 + 1*4],&object_pose[num].o_linear.y,sizeof(float)); 
-        memcpy(&msg_body[num * 64 + 2*4],&object_pose[num].o_linear.z,sizeof(float)); 
+        memcpy(&msg_body[offset + num * 64 + 0*4],&object_pose[num].o_linear.x,sizeof(float)); 
+        memcpy(&msg_body[offset + num * 64 + 1*4],&object_pose[num].o_linear.y,sizeof(float)); 
+        memcpy(&msg_body[offset + num * 64 + 2*4],&object_pose[num].o_linear.z,sizeof(float)); 
         // angular
-        memcpy(&msg_body[num * 64 + 3*4],&object_pose[num].o_angular.x,sizeof(float));
-        memcpy(&msg_body[num * 64 + 4*4],&object_pose[num].o_angular.y,sizeof(float));
-        memcpy(&msg_body[num * 64 + 5*4],&object_pose[num].o_angular.z,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 3*4],&object_pose[num].o_angular.x,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 4*4],&object_pose[num].o_angular.y,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 5*4],&object_pose[num].o_angular.z,sizeof(float));
         // vision angular
-        memcpy(&msg_body[num * 64 + 6*4],&object_pose[num].v_angular.x,sizeof(float));
-        memcpy(&msg_body[num * 64 + 7*4],&object_pose[num].v_angular.y,sizeof(float));
-        memcpy(&msg_body[num * 64 + 8*4],&object_pose[num].v_angular.z,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 6*4],&object_pose[num].v_angular.x,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 7*4],&object_pose[num].v_angular.y,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 8*4],&object_pose[num].v_angular.z,sizeof(float));
         // position filed
-        memcpy(&msg_body[num * 64 + 9*4],&object_pose[num].p_filed,sizeof(float));
+        memcpy(&msg_body[offset + num * 64 + 9*4],&object_pose[num].p_filed,sizeof(float));
     }
     saisunState_->pack(sendMessageTypes::SEND_DATA,msg_body,body_len);
 }
