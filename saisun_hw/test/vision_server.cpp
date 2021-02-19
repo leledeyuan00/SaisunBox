@@ -10,7 +10,7 @@
 class visionServer
 {
 public:
-    visionServer(ros::NodeHandle &nh,std::string name);
+    visionServer(ros::NodeHandle &nh);
     void start(void);
 
 private:
@@ -18,7 +18,6 @@ private:
     std::shared_ptr<actionlib::SimpleActionServer<saisun_msgs::InitialAction>> init_as_;
     std::shared_ptr<actionlib::SimpleActionServer<saisun_msgs::TriggerAction>> trig_as_;
     std::shared_ptr<actionlib::SimpleActionServer<saisun_msgs::GetResultAction>> result_as_;
-    std::string action_name_;
 
     ros::Subscriber saisun_sub_;
     
@@ -31,9 +30,8 @@ private:
     void result_execute_cb(const saisun_msgs::GetResultGoalConstPtr& goal);
 };
 
-visionServer::visionServer(ros::NodeHandle &nh,std::string name):
-                nh_(nh),
-                action_name_(name)
+visionServer::visionServer(ros::NodeHandle &nh):
+                nh_(nh)
 {
     ros_init();
 }
@@ -43,13 +41,13 @@ void visionServer::ros_init(void)
     saisun_sub_ = nh_.subscribe<saisun_msgs::RobotPose>("/saisun_pose", 10, &visionServer::saisunRobotCallback,this);
     
     init_as_.reset(new actionlib::SimpleActionServer<saisun_msgs::InitialAction>(
-        nh_,action_name_,boost::bind(&visionServer::initial_execute_cb,this,_1),false));
+        nh_,"/saisun_robot/saisun_robot_initial",boost::bind(&visionServer::initial_execute_cb,this,_1),false));
 
     trig_as_.reset(new actionlib::SimpleActionServer<saisun_msgs::TriggerAction>(
-        nh_,action_name_,boost::bind(&visionServer::triger_execute_cb,this,_1),false));
+        nh_,"/saisun_robot/saisun_robot_trigger",boost::bind(&visionServer::triger_execute_cb,this,_1),false));
     
     result_as_.reset(new actionlib::SimpleActionServer<saisun_msgs::GetResultAction>(
-        nh_,action_name_,boost::bind(&visionServer::result_execute_cb,this,_1),false));    
+        nh_,"/saisun_robot/saisun_robot_get_result",boost::bind(&visionServer::result_execute_cb,this,_1),false));    
 }
 
 void visionServer::start(void)
@@ -133,7 +131,8 @@ int main(int argc, char* argv[])
     ros::init(argc, argv, "vision_server");
     ros::NodeHandle nh;
 
-    visionServer vs_(nh,"saisun_robot/saisun_robot_initial");
+    visionServer vs_(nh);
+    vs_.start();
     
     ros::spin();
 }

@@ -163,7 +163,7 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
             {
                 saisun_init_ac_->stopTrackingGoal();
             }
-            ROS_ERROR("Vision system not connect");
+            ROS_ERROR("Vision system <Initial Action> not connect");
             break;
         }
         if (server_state != actionlib::SimpleClientGoalState::PENDING)
@@ -185,7 +185,7 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
             {
                 saisun_trig_ac_->stopTrackingGoal();
             }
-            ROS_ERROR("Vision system not connect");
+            ROS_ERROR("Vision system <Trigger Action> not connect");
             break;
         }
         if (server_state != actionlib::SimpleClientGoalState::PENDING)
@@ -209,7 +209,7 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
             {
                 saisun_result_ac_->stopTrackingGoal();
             }
-            ROS_ERROR("Vision system not connect");
+            ROS_ERROR("Vision system <Result Action> not connect");
             break;
         }
         if (server_state != actionlib::SimpleClientGoalState::PENDING)
