@@ -4,12 +4,13 @@ parser = argparse.ArgumentParser()
 
 # segment relevant
 parser.add_argument('--type', type=int, default= 1)
-parser.add_argument('--model', type=str, default='/home/conicacui/depallet_ws/src/sensing/script/box/model.yml')
+parser.add_argument('--model', type=str, default='/home/andylee/demo_time_fix_ws/src/hkclr_smart_grasping_platform/grasping_platform/script/box/model.yml')
 parser.add_argument('--downsample_resolution', type=float, default=0.0025, help='the resolution for pcl voxel grid filter')
-parser.add_argument('--filter_z_min', type=float, default=2.43) # 1354 for 11.30 data
-parser.add_argument('--filter_z_max', type=float, default=1.5) # 1000 for 11.30 data
-parser.add_argument('--filter_y_min', type=float, default=0.6)  # roi in y-axis
-parser.add_argument('--filter_y_max', type=float, default=-0.6) # roi in y-axis
+parser.add_argument('--filter_z_min', type=float, default=2.6) # 1354 for 11.30 data
+parser.add_argument('--filter_z_max', type=float, default=1.8) # 1000 for 11.30 data
+parser.add_argument('--filter_y_min', type=float, default=1.0)  # roi in y-axis
+parser.add_argument('--filter_y_max', type=float, default=-1.0) # roi in y-axis
+parser.add_argument('--KNN_number', type=int, default=5)  # 30 
 parser.add_argument('--seg_min_number', type=int, default=4000)
 parser.add_argument('--seg_max_number', type=int, default=50000)
 parser.add_argument('--seg_smoothness', type=float, default=0.15)
@@ -25,9 +26,10 @@ parser.add_argument('--grasper_size_para', type=list,
 
 # edge detection relevant
 parser.add_argument('--camera_intrinsics', type=list,
-                    default=[2.3073767148720622e+03, 2.3073767148720622e+03, 959, 979])  # camera
-parser.add_argument('--PREPROCESS_THRESHOLD_DEFAULT', type=int,
-                    default=30)  # threshold for edge detection
+                    default=[2.3328340059123725e+03, 2.3328340059123725e+03, 965, 670])  # camera value3: smaller->right
+# parser.add_argument('--camera_intrinsics', type=list,
+#                     default=[2.3073767148720622e+03, 2.3073767148720622e+03, 959, 979])  # camera
+parser.add_argument('--PREPROCESS_THRESHOLD_DEFAULT', type=int, default=120)  # threshold for edge detection
 
 # task relevant
 parser.add_argument('--UNSTACK', type=int, default=1)  # toggle for UNSTACK or BOX-PICKING

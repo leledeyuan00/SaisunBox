@@ -93,6 +93,7 @@ install(
   lib/smarteye/lib/libicuuc.so.60
   lib/smarteye/lib/libgxiapi.so
   lib/smarteye/lib/libicudata.so.60
+  lib/smarteye/lib/GxU3VTL.cti
   DESTINATION
   lib/${PROJECT_NAME}
 )

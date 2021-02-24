@@ -42,6 +42,8 @@ def plane_extract(input_pts, params):
     val_cond.add_Comparison2('y', pcl.CythonCompareOp_Type.LT, params.filter_y_min)
     val_cond_Filter = cloud_ds.make_ConditionalRemoval(val_cond)
     cloud_ds_zf = val_cond_Filter.filter()
+    # np.savetxt("filter.txt", cloud_ds_zf.to_array())
+
 
     # 4. Filtering by plane_para
     cloud_ds_zf = removing_plane_bg(cloud_ds_zf, params.filter_ground_plane_para, params.dist2plane)
@@ -58,12 +60,12 @@ def plane_extract(input_pts, params):
 
     # 5. Segmentation based on region growing
     tree = cloud_ds_zf_sor.make_kdtree()
-    segment = cloud_ds_zf_sor.make_RegionGrowing(ksearch=8)
+    segment = cloud_ds_zf_sor.make_RegionGrowing(ksearch=params.KNN_number) 
     seg_min_number = params.seg_min_number
     seg_max_number = params.seg_max_number
     segment.set_MinClusterSize(seg_min_number)
     segment.set_MaxClusterSize(seg_max_number)
-    segment.set_NumberOfNeighbours(8)
+    segment.set_NumberOfNeighbours(params.KNN_number)
     seg_smoothness = params.seg_smoothness
     seg_curvature = params.seg_curvature
     segment.set_SmoothnessThreshold(seg_smoothness)

@@ -100,6 +100,11 @@ def pose_estimation(selected_plane):
     # 10
     rec_wid = max(normalized_pts.dot(axis_x)) * 2
     rec_len = max(normalized_pts.dot(axis_y)) * 2
+    print("rec_wid", rec_wid)
+    print("rec_len", rec_len)
+
+    rec_wid = rec[1][0]
+    rec_len = rec[1][1]
     if (rec_wid < rec_len):
         R = rotate_xy(R)
         temp = rec_wid

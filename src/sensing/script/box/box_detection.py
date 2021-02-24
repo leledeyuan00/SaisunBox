@@ -24,8 +24,8 @@ def detect(np_cloud, z_min, z_max, width, height):
     params.filter_z_min = z_max
     print(np_cloud.shape)
     
-    # image_arr = getImageArray(np_cloud, int(width), int(height))
-    # cv2.imwrite("result.jpg", image_arr)
+    image_arr = getImageArray(np_cloud, int(width), int(height))
+    cv2.imwrite("result.jpg", image_arr)
 
     #delete the intensity
     np_cloud = np.delete(np_cloud, 3, 1)
@@ -46,6 +46,9 @@ def detectCloud(np_cloud):
     
     start_time = time.time()
     cluster_planes, cloud_ds = plane_extract(np_cloud, params)
+    if(len(cluster_planes) == 0):
+        print("No plane detected!")
+        return False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 
     # visualize_scene(cluster_planes)
 
     grasp_ids = grasp_selection(cluster_planes, params)
@@ -99,5 +102,5 @@ def detectCloud(np_cloud):
     # scene_pts = o3d.io.read_point_cloud(ply_path)
     # visualize_pose_in_raw_pts(scene_pts, cluster_planes[grasp_id][:, 0:3], R, t)
     print(pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len)
-    return pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len
+    return True, pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len
 

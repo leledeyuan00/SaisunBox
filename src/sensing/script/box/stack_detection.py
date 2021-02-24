@@ -31,16 +31,19 @@ def getImageArray(pts, width, height):
 
 
 def detect(np_cloud, z_min, z_max, width, height):
-    result, _, _, _ = detect_with_view(np_cloud, width, height)
-    R, t, pose, rec_wid, rec_len = result
-    print(pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len)
-    return pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len
+    success, result = detect_with_view(np_cloud, width, height)
+    if(success):
+        _, _, pose, rec_wid, rec_len = result[0]
+        print(pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len)
+        return True, pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len
 
+    print("No plane detected")
+    return False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 def detect_with_view(pts, width, height):
     # 2. load image
     gray_img = getImageArray(pts, int(width), int(height))
-    #cv2.imwrite("result.jpg", gray_img)
+    # cv2.imwrite("result.jpg", gray_img)
 
     pts = pts[:, 0:3]
     print(pts.shape)
@@ -52,7 +55,7 @@ def detect_with_view(pts, width, height):
     grasp_plane_ids = grasp_selection(cluster_planes, params)
     # visualize_scene(cluster_planes)
 
-    if (len(grasp_plane_ids) != 0):
+    if (len(cluster_planes) != 0):
         for i in range(len(grasp_plane_ids)):
             # 3.1 get the corresponding sub-image for this extracted plane
             idx = grasp_plane_ids[i]
@@ -69,7 +72,8 @@ def detect_with_view(pts, width, height):
 
             # 3.3 get the edge points
             edge_pts = get_edge_point_cloud(pts, intrinsics, edges)
-            # np.savetxt("edge_points.txt", edge_pts)
+            # print("edge_pts: ", edge_pts.shape)
+            # np.savetxt("cluster_planes_i.txt", cluster_planes_i)
 
             # 3.4 filtering the neighboring points near the edge points
             # time1 = time.time()
@@ -89,16 +93,19 @@ def detect_with_view(pts, width, height):
             # 3.6 grasp pose estimation
             if(len(sub_cluster_planes) > 1):
                 grasp_box = sub_cluster_planes[0]
+                # print("aaa")
                 #visualize_scene_with_pose(sub_cluster_planes, 0, R, t)
-                return pose_estimation(sub_cluster_planes[0]), grasp_box, sub_cluster_planes, 0
+                return True, [pose_estimation(sub_cluster_planes[0]), grasp_box, sub_cluster_planes, 0]
             else:
                 grasp_box = cluster_planes_i
                 # np.savetxt("cluster_planes_i.txt", cluster_planes_i)
                 #visualize_scene_with_pose(cluster_planes, idx, R, t)
-                return pose_estimation(cluster_planes_i), grasp_box, cluster_planes, idx
+                # print("bbb")
+                return True, [pose_estimation(cluster_planes_i), grasp_box, cluster_planes, idx]
 
     else:
         print("No any plane structures!")
+        return False, []
 
 
 

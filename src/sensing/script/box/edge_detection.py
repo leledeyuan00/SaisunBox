@@ -5,9 +5,11 @@ import time
 from numba import cuda
 import math
 from matplotlib import pyplot as plt
+from config import parser
 # from skimage.draw import line
 
-PREPROCESS_THRESHOLD_DEFAULT = 30
+params = parser.parse_args()
+PREPROCESS_THRESHOLD_DEFAULT = params.PREPROCESS_THRESHOLD_DEFAULT
 TOPK = 100
 RATIO2MAX = 0.05
 BIN_SIZE = 3
@@ -140,6 +142,9 @@ def egde_detect(img, model_path):
     mask = img > preprcoess_threshold
     rgb_im_binary[mask] = 255
 
+    # cv2.imshow('result', rgb_im_binary)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     edges = edge_detection.detectEdges(np.float32(rgb_im_binary) / 255.0)
     orimap = edge_detection.computeOrientation(edges)

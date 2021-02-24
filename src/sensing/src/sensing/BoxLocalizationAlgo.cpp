@@ -60,6 +60,7 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, geometry
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "z: [%f %f]", roi_.z_offset / 1000.0, (roi_.z_offset + roi_.depth)/1000.0);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "size: [%d %d]", cloud_ptr->width, cloud_ptr->height);
 
+    bool success = false;
     // execute the function
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "----------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     PyObject* pResult = PyEval_CallObject(pyFunc_, pArgs);
@@ -67,8 +68,15 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, geometry
     // process the result
     if (pResult != NULL) 
     {
-        PyArg_ParseTuple(pResult, "d|d|d|d|d|d|d|d|d", &pose.position.x, &pose.position.y, &pose.position.z,
+        
+        PyArg_ParseTuple(pResult, "i|d|d|d|d|d|d|d|d|d", &success, &pose.position.x, &pose.position.y, &pose.position.z,
             &pose.orientation.x, &pose.orientation.y, &pose.orientation.z, &pose.orientation.w, &width, &height);	
+        if(success) {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Detected box pose!");
+        } else{
+            RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Detected nothing!");
+        }
+
         Py_DECREF(pResult);
 
     } else {
@@ -82,7 +90,7 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, geometry
     delete[] cloud_m;
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Python script finished!");
-    return true;
+    return success;
 }
 
 PyObject* createArg(PointCloudColor::Ptr cloud_ptr, float* m){

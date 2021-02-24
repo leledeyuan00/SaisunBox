@@ -11,13 +11,19 @@ import time
 
 params = parser.parse_args()
 if __name__ == '__main__':
-    ply_path = '/home/conicacui/dev_ws/ply_0.ply'
+    ply_path = '/home/andylee/demo_time_fix_ws/ply_11.ply'
+    # params.filter_z_max = 1.2
+    # params.filter_z_min = 1.5
+
     cloud = pcl.load(ply_path)
+    np_cloud = cloud.to_array()
+
+    print(np_cloud.shape)
     # out_arr = np.asarray(cloud) 
 
     start_time = time.time()
     # cluster_planes, cloud_ds = plane_extract(out_arr, params)
-    cluster_planes, cloud_ds = plane_extract(cloud, params)
+    cluster_planes, cloud_ds = plane_extract(np_cloud, params)
     # visualize_scene(cluster_planes)
 
     grasp_ids = grasp_selection(cluster_planes, params)
@@ -58,15 +64,15 @@ if __name__ == '__main__':
     print('time cost for pose estimation:', end_time2 - end_time1)
 
     scene_pts = o3d.io.read_point_cloud(ply_path)
-    # visualize_scene_with_pose(cluster_planes, grasp_id, R, t)
+    visualize_scene_with_pose(cluster_planes, grasp_id, R, t)
 
-    # scene_pts = o3d.geometry.PointCloud()
-    # scene_pts.points = o3d.utility.Vector3dVector(cloud_ds)
-    if(box_graspable == 0):
-        overlap = o3d.geometry.PointCloud()
-        overlap.points = o3d.utility.Vector3dVector(overlap_points)
-        visualize_pose_in_raw_pts_one_box(scene_pts, cluster_planes[grasp_id][:, 0:3], R, t, overlap, grasper_box, box_lines)
-    else:
-        visualize_pose_in_raw_pts_two_box(scene_pts, cluster_planes[grasp_id][:, 0:3], R, t, grasper_box, box_lines, box_range, box_range_lines)
+    # # scene_pts = o3d.geometry.PointCloud()
+    # # scene_pts.points = o3d.utility.Vector3dVector(cloud_ds)
+    # if(box_graspable == 0):
+    #     overlap = o3d.geometry.PointCloud()
+    #     overlap.points = o3d.utility.Vector3dVector(overlap_points)
+    #     visualize_pose_in_raw_pts_one_box(scene_pts, cluster_planes[grasp_id][:, 0:3], R, t, overlap, grasper_box, box_lines)
+    # else:
+    #     visualize_pose_in_raw_pts_two_box(scene_pts, cluster_planes[grasp_id][:, 0:3], R, t, grasper_box, box_lines, box_range, box_range_lines)
 
     print('poses:', pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len)
