@@ -1,5 +1,4 @@
-#include "saisun_driver/saisun_com.h"
-#include "ros/ros.h"
+#include "saisun_hw/saisun_com.h"
 
 SaisunCom::SaisunCom(std::string host,unsigned int port)
 	:host_(host),port_(port)

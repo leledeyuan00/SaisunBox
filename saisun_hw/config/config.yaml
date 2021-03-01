@@ -1,17 +1,17 @@
-saisun_robot:
-
-  # robot ip
-  saisun_ip: "172.16.1.30"
-  # connect port
-  saisun_port: 9999
-  # Is use net sequence? I'm not sure..
-  use_net_sequence: False
-  # algorithm version
-  algorithm_version: "0.1"
-  
-  # state  0 -> state of end of robot pose
-  req_pose_state: 0x00
-  # type of request pose frame
-  req_pose_type: 0x00
-  # number of request extra joint of robot
-  req_pose_ex_joint_num: 0x00
+saisun_driver:
+  ros__parameters:
+    # robot ip
+    saisun_ip: "172.16.1.30"
+    # connect port
+    saisun_port: 9999
+    # Is use net sequence? I'm not sure..
+    use_net_sequence: False
+    # algorithm version
+    algorithm_version: "0.1"
+    
+    # state  0 -> state of end of robot pose
+    req_pose_state: 0x00
+    # type of request pose frame
+    req_pose_type: 0x00
+    # number of request extra joint of robot
+    req_pose_ex_joint_num: 0x00

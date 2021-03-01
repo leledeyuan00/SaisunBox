@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-    <rosparam command="load" file="$(find saisun_hw)/config/config.yaml"/>
-    <node name="saisun_hw" pkg="saisun_hw" type="saisun_hw" 
-          ns="saisun_robot" output="screen"/>
-    
-</launch>

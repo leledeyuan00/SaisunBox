@@ -1,6 +1,6 @@
-#include "saisun_driver/ros_wrapper.h"
+#include "saisun_hw/ros_wrapper.h"
 
-SaisunWrapper::SaisunWrapper(ros::NodeHandle &nh):nh_(nh)
+SaisunWrapper::SaisunWrapper():Node("saisun_driver")
 {
     ros_init();
     init();
@@ -8,32 +8,33 @@ SaisunWrapper::SaisunWrapper(ros::NodeHandle &nh):nh_(nh)
 
 void SaisunWrapper::ros_init(void)
 {
-    // param get
-    if (!nh_.getParam("saisun_ip", host_))
-        { ROS_ERROR("No saisun_ip param"); 
-        host_ = "172.16.1.30";
-    }
-    int port;
-    if (!nh_.getParam("saisun_port", port))
-        { ROS_ERROR("No saisun_port param"); 
-        port_ = 9999;
-    }
-    port_ = port;
-    if (!nh_.getParam("use_net_sequence", use_net_sequence_))
-        { ROS_ERROR("No use_net_sequence param"); 
-        use_net_sequence_ = false;
-    }
-    if (!nh_.getParam("algorithm_version", algorithm_version_))
-        { ROS_ERROR("No algorithm_version param");
-         algorithm_version_ = "0.1"; 
-    }
+    // param get 
+    this->declare_parameter("saisun_ip","172.16.1.30"); // Default value of 0
+    this->declare_parameter("saisun_port",9999);  // Default string is given
+    this->declare_parameter("use_net_sequence",false);
+    this->declare_parameter("algorithm_version","0.1");
 
-    robot_pose_pub_ = nh_.advertise<saisun_msgs::RobotPose>("/saisun_pose", 10);
-    
-    saisun_init_ac_.reset(new actionlib::SimpleActionClient<saisun_msgs::InitialAction>("saisun_robot_initial",true));
-    saisun_trig_ac_.reset(new actionlib::SimpleActionClient<saisun_msgs::TriggerAction>("saisun_robot_trigger",true));
-    saisun_result_ac_.reset(new actionlib::SimpleActionClient<saisun_msgs::GetResultAction>("saisun_robot_get_result",true));
-    
+    if (!this->get_parameter("saisun_ip",host_))
+    {   RCLCPP_ERROR(this->get_logger(),"No saisun_ip param");}
+    int port;
+    if (!this->get_parameter("saisun_port", port))
+    {   RCLCPP_ERROR(this->get_logger(),"No saisun_port param");}
+    port_ = port;
+    if (!this->get_parameter("use_net_sequence", use_net_sequence_))
+    {   RCLCPP_ERROR(this->get_logger(),"No use_net_sequence param");}
+    RCLCPP_INFO(this->get_logger(),"use_net_sequence_ is %d",use_net_sequence_);
+    if (!this->get_parameter("algorithm_version", algorithm_version_))
+    {   RCLCPP_ERROR(this->get_logger(),"No algorithm_version param");}
+
+    robot_pose_pub_ = this->create_publisher<saisun_msgs::msg::RobotPose>("/saisun_pose",10);
+
+    saisun_init_ac_ = rclcpp_action::create_client<SaisunInitial>(
+        this,"saisun_robot_initial");
+    saisun_trig_ac_ = rclcpp_action::create_client<SaisunTrigger>(
+        this,"saisun_robot_trigger");
+    saisun_result_ac_ = rclcpp_action::create_client<SaisunResult>(
+        this,"saisun_robot_get_result");
+
     robot_pose_init_ = false;
 }
 
@@ -48,7 +49,7 @@ void SaisunWrapper::init(void)
 void SaisunWrapper::start(void)
 {
     control_loop_thread_.reset(new std::thread(
-        boost::bind(&SaisunWrapper::control_loop,this)));
+        std::bind(&SaisunWrapper::control_loop,this)));
     saisunState_->start();
 }
 
@@ -71,58 +72,98 @@ void SaisunWrapper::parse_robot_pos(void)
     robot_pos_.angular.x = robot_pos[3];
     robot_pos_.angular.y = robot_pos[4];
     robot_pos_.angular.z = robot_pos[5];
-
 }
 
 void SaisunWrapper::publish_msgs(void)
 {
-    robot_pose_pub_.publish(robot_pos_);
+    robot_pose_pub_->publish(robot_pos_);
 }
 
-// action callback
-void SaisunWrapper::initial_ac_cb(const actionlib::SimpleClientGoalState& state,
-                                  const saisun_msgs::InitialResultConstPtr& result)
+void SaisunWrapper::initial_ac_cb(const GoalHandleInitial::WrappedResult& result)
 {
-    uint32_t body_len = 2;
+    const uint32_t body_len = 2;
     uint8_t msg_body[body_len];
     memset(msg_body,0,body_len);
-    if (result->success)
+
+    switch (result.code) {
+      case rclcpp_action::ResultCode::SUCCEEDED:
+        break;
+      case rclcpp_action::ResultCode::ABORTED:
+        RCLCPP_ERROR(this->get_logger(), "Initial Goal was aborted");
+        return;
+      case rclcpp_action::ResultCode::CANCELED:
+        RCLCPP_ERROR(this->get_logger(), "Initial Goal was canceled");
+        return;
+      default:
+        RCLCPP_ERROR(this->get_logger(), "Initial Goal has an unknown result code");
+        return;
+    }
+    
+    if (result.result->success)
     {
         saisunState_->set_vision_state(visionStateTypes::VISION_OK);
         saisunState_->pack(sendMessageTypes::SEND_INIT,msg_body,body_len);
-        ROS_INFO("Vision initial successed");
+        RCLCPP_INFO(this->get_logger(),"Vision initial successed");
     }else{
         saisunState_->set_vision_state(visionStateTypes::OTHER_ERROR);
         saisunState_->pack(sendMessageTypes::SEND_ERROR,msg_body,body_len);
     }
-    
 }
 
-void SaisunWrapper::trigger_ac_cb(const actionlib::SimpleClientGoalState& state,
-                                  const saisun_msgs::TriggerResultConstPtr& result)
+
+void SaisunWrapper::trigger_ac_cb(const GoalHandleTrigger::WrappedResult& result)
 {
-    uint32_t body_len = 2;
+    const uint32_t body_len = 2;
     uint8_t msg_body[body_len];
     memset(msg_body,0,body_len);
-    msg_body[0] = result->detection_state;
-    msg_body[1] = result->return_scene_group;
+
+    switch (result.code) {
+      case rclcpp_action::ResultCode::SUCCEEDED:
+        break;
+      case rclcpp_action::ResultCode::ABORTED:
+        RCLCPP_ERROR(this->get_logger(), "Trigger Goal was aborted");
+        return;
+      case rclcpp_action::ResultCode::CANCELED:
+        RCLCPP_ERROR(this->get_logger(), "Trigger Goal was canceled");
+        return;
+      default:
+        RCLCPP_ERROR(this->get_logger(), "Trigger Goal has an unknown result code");
+        return;
+    }
+
+    msg_body[0] = result.result->detection_state;
+    msg_body[1] = result.result->return_scene_group;
     saisunState_->pack(sendMessageTypes::SEND_TRIG,msg_body,body_len);
 }
 
-void SaisunWrapper::result_ac_cb(const actionlib::SimpleClientGoalState& state,
-                                 const saisun_msgs::GetResultResultConstPtr& result)
+void SaisunWrapper::result_ac_cb(const GoalHandleResult::WrappedResult& result)
 {
-    uint8_t object_num = result->object_num;
-    std::vector<saisun_msgs::ObjectPose> object_pose;
-    object_pose.resize(object_num);
-    object_pose = result->object_pos;
+    switch (result.code) {
+      case rclcpp_action::ResultCode::SUCCEEDED:
+        break;
+      case rclcpp_action::ResultCode::ABORTED:
+        RCLCPP_ERROR(this->get_logger(), "Result Goal was aborted");
+        return;
+      case rclcpp_action::ResultCode::CANCELED:
+        RCLCPP_ERROR(this->get_logger(), "Result Goal was canceled");
+        return;
+      default:
+        RCLCPP_ERROR(this->get_logger(), "Result Goal has an unknown result code");
+        return;
+    }
 
-    uint32_t body_len = 4 + 64 * object_num;
-    uint8_t msg_body[body_len];
-    memset(msg_body,0,body_len);
+    uint8_t object_num = result.result->object_num;
+    std::vector<saisun_msgs::msg::ObjectPose> object_pose;
+    object_pose.resize(object_num);
+    object_pose = result.result->object_pos;
+
+    const uint32_t body_len = 4 + 64 * object_num;
+    const size_t max_body_len = 4 + 64 * 8;
+    uint8_t msg_body[max_body_len];
+    memset(msg_body,0,max_body_len);
     
-    msg_body[0] = result->detection_state;
-    msg_body[1] = result->return_scene_group;
+    msg_body[0] = result.result->detection_state;
+    msg_body[1] = result.result->return_scene_group;
     msg_body[2] = object_num;
 
     size_t offset = 4;
@@ -147,8 +188,50 @@ void SaisunWrapper::result_ac_cb(const actionlib::SimpleClientGoalState& state,
     saisunState_->pack(sendMessageTypes::SEND_DATA,msg_body,body_len);
 }
 
+void SaisunWrapper::initial_response(std::shared_future<GoalHandleInitial::SharedPtr> future)
+{
+    auto goal_handle = future.get();
+    if (!goal_handle) {
+        RCLCPP_ERROR(this->get_logger(), "Initial Goal was rejected by server");
+    } else {
+        RCLCPP_INFO(this->get_logger(), "Initial Goal accepted by server, waiting for result");
+    }
+}
+
+void SaisunWrapper::trigger_response(std::shared_future<GoalHandleTrigger::SharedPtr> future)
+{
+    auto goal_handle = future.get();
+    if (!goal_handle) {
+        RCLCPP_ERROR(this->get_logger(), "Trigger Goal was rejected by server");
+    } else {
+        RCLCPP_INFO(this->get_logger(), "Trigger Goal accepted by server, waiting for result");
+    }
+}
+
+void SaisunWrapper::result_response(std::shared_future<GoalHandleResult::SharedPtr> future)
+{
+    auto goal_handle = future.get();
+    if (!goal_handle) {
+        RCLCPP_ERROR(this->get_logger(), "Result Goal was rejected by server");
+    } else {
+        RCLCPP_INFO(this->get_logger(), "Result Goal accepted by server, waiting for result");
+    }
+}
+
+void SaisunWrapper::wait_vision_node(void)
+{
+    RCLCPP_INFO(this->get_logger(),"Waiting for vision node ....");
+    saisun_init_ac_->wait_for_action_server();
+    saisun_trig_ac_->wait_for_action_server();
+    saisun_result_ac_->wait_for_action_server();
+    saisunState_->set_vision_state(visionStateTypes::VISION_OK);
+    RCLCPP_INFO(this->get_logger(),"Vision node is connected. Start the TCP protocol with Saisun Robot");
+}
+
 void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
 {
+    using namespace std::placeholders;
+
     receiveMessageTypes receive_type = cmd;
     uint8_t msg_body[8];
     memcpy(msg_body,msg,8);
@@ -156,68 +239,51 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
     {
     case receiveMessageTypes::GET_INIT:
     {
-        saisun_msgs::InitialGoal init_goal;
-        actionlib::SimpleClientGoalState::StateEnum server_state;
-        server_state = saisun_init_ac_->getState().state_;
-        if (!saisun_init_ac_->isServerConnected())
+        auto init_goal = SaisunInitial::Goal();
+        auto send_goal_option = rclcpp_action::Client<SaisunInitial>::SendGoalOptions();
+        send_goal_option.goal_response_callback = 
+            std::bind(&SaisunWrapper::initial_response, this, _1);
+        send_goal_option.result_callback=
+            std::bind(&SaisunWrapper::initial_ac_cb,this,_1);
+        if (saisun_init_ac_->action_server_is_ready())
         {
-            if (server_state!= actionlib::SimpleClientGoalState::LOST)
-            {
-                saisun_init_ac_->stopTrackingGoal();
-            }
-            ROS_ERROR("Vision system <Initial Action> not connect");
-            break;
-        }
-        if (server_state != actionlib::SimpleClientGoalState::PENDING)
-        {
-            saisun_init_ac_->sendGoal(init_goal,bind(&SaisunWrapper::initial_ac_cb,this,_1,_2));
+            saisun_init_ac_->async_send_goal(init_goal,send_goal_option);
         }
         
-        ROS_INFO("in init");
+        RCLCPP_INFO(this->get_logger(),"in init");
         break;
     }
     case receiveMessageTypes::GET_TRIG:
     {
-        saisun_msgs::TriggerGoal trig_goal;
-        actionlib::SimpleClientGoalState::StateEnum server_state;
-        server_state = saisun_trig_ac_->getState().state_;
-        if (!saisun_trig_ac_->isServerConnected())
-        {
-            if (server_state!= actionlib::SimpleClientGoalState::LOST)
-            {
-                saisun_trig_ac_->stopTrackingGoal();
-            }
-            ROS_ERROR("Vision system <Trigger Action> not connect");
-            break;
-        }
-        if (server_state != actionlib::SimpleClientGoalState::PENDING)
+        auto trig_goal = saisun_msgs::action::Trigger::Goal();
+        auto send_goal_option = rclcpp_action::Client<SaisunTrigger>::SendGoalOptions();
+        send_goal_option.goal_response_callback = 
+            std::bind(&SaisunWrapper::trigger_response, this, _1);
+        send_goal_option.result_callback=
+            std::bind(&SaisunWrapper::trigger_ac_cb,this,_1);
+        if (saisun_trig_ac_->action_server_is_ready())
         {
             trig_goal.trigger = msg_body[0];
             trig_goal.scene_group = msg_body[1];
             memcpy(&trig_goal.scene,&msg_body[4],sizeof(uint16_t));
-            saisun_trig_ac_->sendGoal(trig_goal,bind(&SaisunWrapper::trigger_ac_cb,this,_1,_2));
+            saisun_trig_ac_->async_send_goal(trig_goal,send_goal_option);
         }
-        ROS_INFO("in trig");
+
+        RCLCPP_INFO(this->get_logger(),"in trig");
         break;
     }
     case receiveMessageTypes::GET_DATA:
     {
-        saisun_msgs::GetResultGoal result_goal;
-        actionlib::SimpleClientGoalState::StateEnum server_state;
-        server_state = saisun_result_ac_->getState().state_;
-        if (!saisun_result_ac_->isServerConnected())
-        {
-            if (server_state!= actionlib::SimpleClientGoalState::LOST)
-            {
-                saisun_result_ac_->stopTrackingGoal();
-            }
-            ROS_ERROR("Vision system <Result Action> not connect");
-            break;
-        }
-        if (server_state != actionlib::SimpleClientGoalState::PENDING)
+        auto result_goal = saisun_msgs::action::GetResult::Goal();
+        auto send_goal_option = rclcpp_action::Client<SaisunResult>::SendGoalOptions();
+        send_goal_option.goal_response_callback = 
+            std::bind(&SaisunWrapper::result_response, this, _1);
+        send_goal_option.result_callback=
+            std::bind(&SaisunWrapper::result_ac_cb,this,_1);
+        if (saisun_result_ac_->action_server_is_ready())
         {
             result_goal.scene_group = msg_body[1];
-            saisun_result_ac_->sendGoal(result_goal,bind(&SaisunWrapper::result_ac_cb,this,_1,_2));
+            saisun_result_ac_->async_send_goal(result_goal,send_goal_option);
         }
         break;
     }    
@@ -226,20 +292,10 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
     }
 }
 
-void SaisunWrapper::wait_vision_node(void)
-{
-    ROS_INFO("Waiting for vision node ....");
-    saisun_init_ac_->waitForServer();
-    saisun_trig_ac_->waitForServer();
-    saisun_result_ac_->waitForServer();
-    saisunState_->set_vision_state(visionStateTypes::VISION_OK);
-    ROS_INFO("Vision node is connected. Start the TCP protocol with Saisun Robot");
-}
-
 void SaisunWrapper::control_loop(void)
 {
     wait_vision_node();
-    while (ros::ok())
+    while (rclcpp::ok())
     {
         /* polling */
         bzero(receive_msg_body_,8);
@@ -258,21 +314,19 @@ void SaisunWrapper::control_loop(void)
     }
 }
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    ros::init(argc, argv, "saisun_vision_node");
-    ros::NodeHandle nh;
-
-    SaisunWrapper saisun_wrapper(nh);
-    saisun_wrapper.start();
-
-    ros::AsyncSpinner spinner(3);
-    spinner.start();
-
-    ros::waitForShutdown();
-    std::cout << "I'm in ending" << std::endl;
-    saisun_wrapper.halt();
-
-    return 0;    
+    // ros init
+    rclcpp::init(argc,argv);
+    rclcpp::executors::MultiThreadedExecutor executors;
+    auto saisun_wrapper = std::make_shared<SaisunWrapper>();
+    // spin multiple threads
+    executors.add_node(saisun_wrapper);
+    saisun_wrapper->start();
+    executors.spin();
+    // end this node
+    rclcpp::shutdown();
+    saisun_wrapper->halt();
+    printf("I'm in end");
+    return 0;
 }

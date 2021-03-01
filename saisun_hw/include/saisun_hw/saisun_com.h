@@ -22,6 +22,8 @@
 #include <fcntl.h>
 #include <boost/shared_ptr.hpp>
 
+#include "saisun_hw/visibiblity_control.h"
+
 class SaisunCom
 {
 private:
