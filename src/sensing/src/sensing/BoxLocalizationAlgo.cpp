@@ -23,8 +23,8 @@ int BoxLocalizationAlgo::init(){
     import_array();
 
     // add the current folder to the Python's PATH
-    //PyRun_SimpleString("import sys");
-    //PyRun_SimpleString("sys.path.append(\"/home/conicacui/dev_ws/src/hkclr_smart_grasping_platform/grasping_platform/script/box\")");
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append(\"/home/jiang/saisun_ws/install/sensing/script/sensing/box\")");
 
     // load our python script
     pyModule_ = PyImport_ImportModule("detect_interface"); 

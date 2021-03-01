@@ -43,7 +43,7 @@ def detect(np_cloud, z_min, z_max, width, height):
 def detect_with_view(pts, width, height):
     # 2. load image
     gray_img = getImageArray(pts, int(width), int(height))
-    # cv2.imwrite("result.jpg", gray_img)
+    cv2.imwrite("result.jpg", gray_img)
 
     pts = pts[:, 0:3]
     print(pts.shape)

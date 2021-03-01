@@ -23,6 +23,12 @@ find_package(rclcpp REQUIRED)
 find_package(PCL COMPONENTS io REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(saisun_msgs REQUIRED)
+find_package(Eigen REQUIRED)
+find_package(rclcpp_components REQUIRED)
+
 # Set SmartEye dependency
 set(SmartEye_FOUND true)
 set(SmartEye_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/lib")
@@ -52,7 +58,7 @@ ament_target_dependencies(sensing
   PCL_IO
   SmartEye
 )
-
+ament_export_include_directories(include)
 #### Target link libraries ####
 target_link_libraries(sensing
   python3.8
@@ -62,9 +68,15 @@ target_link_libraries(sensing
 add_executable(test_sensing 
   src/test.cpp
 )
-
 target_link_libraries(test_sensing
   sensing
+)
+ament_target_dependencies(test_sensing
+  "rclcpp" 
+  "rclcpp_action" 
+  "saisun_msgs"
+  "Eigen"
+  "rclcpp_components"
 )
 
 #### Install ####
@@ -76,7 +88,9 @@ install(TARGETS test_sensing
 
 install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME})
-
+install(DIRECTORY include/
+  DESTINATION include/
+)
 # Install python script
 install(
   DIRECTORY

@@ -11,7 +11,7 @@ import time
 
 params = parser.parse_args()
 if __name__ == '__main__':
-    ply_path = '/home/andylee/demo_time_fix_ws/ply_11.ply'
+    ply_path = '/home/jiang/saisun_ws/data/ply_0.ply'
     # params.filter_z_max = 1.2
     # params.filter_z_min = 1.5
 

@@ -30,8 +30,10 @@ bool SmartEyeCameraController::connect(std::string serial_no, RegionOfInterest r
     // int ExposureTime3D = 10000;
 
     //palletizing
-    int ExposureTime2D = 5000;
-    int ExposureTime3D = 3000;
+    // int ExposureTime2D = 5000;
+    // int ExposureTime3D = 3000;
+    int ExposureTime2D = 6408;
+    int ExposureTime3D = 15000;
     float MaxCoeff = 0.95;
     
     controller_.setExposureTime2D(ExposureTime2D);

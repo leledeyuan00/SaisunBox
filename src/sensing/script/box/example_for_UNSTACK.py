@@ -24,8 +24,8 @@ intrinsics[1, 2] = camera_paras[3]
 # main program
 if __name__ == '__main__':
     # 1. load pcd
-    ply_path = '/home/conicacui/dev_ws/src/hkclr_smart_grasping_platform/grasping_platform/data/ply/model5.pcd'
-    model_path = '/home/conicacui/dev_ws/src/hkclr_smart_grasping_platform/grasping_platform/script/box/model.yml'
+    ply_path = '/home/jiang/saisun_ws/data/model5.pcd'
+    model_path = '/home/jiang/saisun_ws/data/model.yml'
     cloud = load_ply(ply_path)
     pts = cloud.to_array()
 

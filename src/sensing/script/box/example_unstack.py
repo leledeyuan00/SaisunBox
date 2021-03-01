@@ -7,7 +7,7 @@ import open3d as o3d
 
 # main program
 if __name__ == '__main__':
-    ply_path = '/home/andylee/demo_time_fix_ws/ply_2.ply'
+    ply_path = '/home/jiang/saisun_ws/data/ply_0.ply'
 
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()

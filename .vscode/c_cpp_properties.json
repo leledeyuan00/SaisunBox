@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/jiang/saisun_ws/src/saisunbox/src/sensing/include/**",
+        "/opt/ros/foxy/include/**",
+        "/usr/include/**",
+        "/home/jiang/saisun_ws/install/saisun_msgs/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}

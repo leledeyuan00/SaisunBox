@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser()
 
 # segment relevant
 parser.add_argument('--type', type=int, default= 1)
-parser.add_argument('--model', type=str, default='/home/andylee/demo_time_fix_ws/src/hkclr_smart_grasping_platform/grasping_platform/script/box/model.yml')
+parser.add_argument('--model', type=str, default='/home/jiang/saisun_ws/data/model.yml')
 parser.add_argument('--downsample_resolution', type=float, default=0.0025, help='the resolution for pcl voxel grid filter')
 parser.add_argument('--filter_z_min', type=float, default=2.6) # 1354 for 11.30 data
 parser.add_argument('--filter_z_max', type=float, default=1.8) # 1000 for 11.30 data
