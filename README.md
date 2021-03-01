@@ -1,12 +1,12 @@
-# 菜鸟项目 -- 新松机器人-视觉TCP ROS接口
+# 菜鸟项目 -- 新松机器人-视觉TCP ROS2接口
 
 ### 启动 Saisun_driver Package
 
-`roslaunch saisun_hw saisun_hw.launch`
+`ros2 launch saisun_hw saisun_hw.launch`
 
 ### 获取机器人状态
 
-`rostopic echo /saisun_pose`
+`ros2 topic echo /saisun_pose`
 
 ### 使用接口
 
