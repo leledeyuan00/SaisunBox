@@ -22,7 +22,7 @@ intrinsics[1, 2] = camera_paras[3]
 # main program
 if __name__ == '__main__':
     # 1. load pcd
-    ply_path = './data/20200220/model5.pcd'
+    ply_path = '../../../../data/model5.pcd'
     pts = load_ply(ply_path)
     start_time = time.time()
     if(params.UNSTACK):

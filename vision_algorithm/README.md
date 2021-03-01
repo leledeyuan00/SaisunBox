@@ -44,11 +44,17 @@ python3 src/sensing/script/box/detect_interface.py
 
 
 
-## Run test_sensing
+## Run ros2 node
 ```
-./install/sensing/lib/sensing/test_sensing
+source setup.bash
 
-#If success, it should print "Sensing succeed!" and detected pose at the end.
+cd ~/WorkSpace
+
+colcon build
+
+. /install/setup.bash
+
+ros2 run vision_node
 ```
 
 

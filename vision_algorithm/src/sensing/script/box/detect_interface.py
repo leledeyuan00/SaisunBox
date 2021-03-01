@@ -27,7 +27,7 @@ def detect(np_cloud, z_min, z_max, width, height):
 
 def testStack():
     print("testStack")
-    ply_path = '/home/jiang/saisun_ws/src/saisunbox/data/ply_0.ply'
+    ply_path = '../../../../data/ply_0.ply'
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()
 
@@ -35,7 +35,7 @@ def testStack():
 
 def testBox():
     print("testBox")
-    ply_path = '/home/jiang/saisun_ws/src/saisunbox/data/ply_0.ply'
+    ply_path = '../../../../data/ply_0.ply'
     cloud = pcl.load_XYZRGB(ply_path)
     np_cloud = cloud.to_array()
     detect(np_cloud, 1.0, 1.5, cloud.width, cloud.height)

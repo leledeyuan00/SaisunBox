@@ -65,13 +65,13 @@ target_link_libraries(sensing
 )
 
 #### Add test ####
-add_executable(test_sensing 
+add_executable(vision_node 
   src/test.cpp
 )
-target_link_libraries(test_sensing
+target_link_libraries(vision_node
   sensing
 )
-ament_target_dependencies(test_sensing
+ament_target_dependencies(vision_node
   "rclcpp" 
   "rclcpp_action" 
   "saisun_msgs"
@@ -83,7 +83,7 @@ ament_target_dependencies(test_sensing
 install(TARGETS sensing
   DESTINATION lib/${PROJECT_NAME})
 
-install(TARGETS test_sensing
+install(TARGETS vision_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config
