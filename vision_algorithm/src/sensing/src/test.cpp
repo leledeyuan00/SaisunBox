@@ -213,10 +213,11 @@ void VisionNode::result_accepted(const std::shared_ptr<GoalHandleResult> goal_ha
 int main(int argc, char **argv)
 {
     rclcpp::init(argc,argv);
-
+    rclcpp::executors::MultiThreadedExecutor executors;
     auto action_server = std::make_shared<VisionNode>();
 
-    rclcpp::spin(action_server);
+    executors.add_node(action_server);
+    executors.spin();
 
     rclcpp::shutdown();
 

@@ -46,6 +46,10 @@ private:
     rclcpp_action::Client<SaisunTrigger>::SharedPtr   saisun_trig_ac_;
     rclcpp_action::Client<SaisunResult>::SharedPtr saisun_result_ac_;
 
+    bool init_goal_done_;
+    bool trig_goal_done_;
+    bool result_goal_done_;
+
     bool robot_pose_init_;
 
     std::string host_;

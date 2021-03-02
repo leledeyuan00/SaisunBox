@@ -88,6 +88,11 @@ void SaisunState::robot_pose_res(uint8_t *buf_body, uint32_t buf_len)
         std::cout << "error robot pose" << std::endl;
         return;
     }
+    if ((robot_pose_.size()*4+4) > buf_len)
+    {
+        std::cout << "error robot buffer len" << std::endl;
+    }
+    
     offset += sizeof(len);
 
     for (size_t i = 0; i < robot_pose_.size(); i++)
@@ -108,17 +113,15 @@ void SaisunState::halt(void)
 
 void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
 {
-    receiveMessageTypes receive_type;
-    sendMessageTypes send_type;
-    uint32_t offset = 0;
+    const size_t max_buff_len = 16 + 28;
     bzero(receive_body_,8);
 
     is_new_message_ = true;
     
     uint32_t net_com_len = ((buf_len % 4) != 0) ? (((buf_len >> 2) +1) *4) : buf_len;
 
-    uint8_t temp[net_com_len];
-    memset(temp,0,sizeof(net_com_len));
+    uint8_t temp[max_buff_len];
+    memset(temp,0,sizeof(max_buff_len));
     memcpy(&temp,buf,buf_len);
 
     if (use_net_sequence_)
@@ -133,6 +136,9 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
             offset += sizeof(len);
         }
     }
+
+    memcpy(&robot_version_.major_version,&temp[6],sizeof(uint16_t));
+    memcpy(&robot_version_.minor_version,&temp[4],sizeof(uint16_t));
 
     uint16_t check_bytes = 0x0001;
     uint16_t receive_check_bytes;
@@ -176,15 +182,16 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
 }
 void SaisunState::pack(sendMessageTypes cmd,uint8_t *body, uint32_t body_len)
 {
+    const size_t max_buff_len = 8*64 + 4;
     uint32_t head_len;
     uint32_t all_len = 4 * sizeof(head_len) + body_len;
     uint8_t vision[4] = {
-    (uint8_t)(robot_version_.minor_version >> 8 &0xff),
-    (uint8_t)(robot_version_.minor_version >> 0 &0xff),
-    (uint8_t)(robot_version_.major_version >> 8 &0xff),
-    (uint8_t)(robot_version_.major_version >> 0 &0xff),
+    (uint8_t)(algorithm_version_.minor_version >> 8 &0xff),
+    (uint8_t)(algorithm_version_.minor_version >> 0 &0xff),
+    (uint8_t)(algorithm_version_.major_version >> 8 &0xff),
+    (uint8_t)(algorithm_version_.major_version >> 0 &0xff),
     };
-    uint8_t temp[all_len] = {
+    uint8_t temp[max_buff_len] = {
         0x00,0x00,0x00,0x00, // fixed head
         vision[0],vision[1],vision[2],vision[3],
         0x80,(uint8_t)cmd,0x00,0x00,
@@ -217,12 +224,6 @@ bool SaisunState::set_algorithm_version(std::string ver)
     {
         algorithm_version_.major_version = (uint16_t) atoi(ver.substr(0,pos_dot).c_str()); 
         algorithm_version_.minor_version = (uint16_t) atoi(ver.substr(pos_dot+1).c_str()); 
-        uint8_t vision[4] = {
-        (uint8_t)(robot_version_.minor_version >> 8 &0xff),
-        (uint8_t)(robot_version_.minor_version >> 0 &0xff),
-        (uint8_t)(robot_version_.major_version >> 8 &0xff),
-        (uint8_t)(robot_version_.major_version >> 0 &0xff),
-        };
         return true;
     }else{
         std::cout << "Please check version should be `xx.xx` format" << std::endl;

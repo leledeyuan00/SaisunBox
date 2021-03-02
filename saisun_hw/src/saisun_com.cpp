@@ -73,11 +73,10 @@ void SaisunCom::halt() {
 
 void SaisunCom::write_sock(uint8_t *buf, unsigned int buf_len)
 {
-	int bytes_written;
 	if (connected_)
 	{
-		bytes_written = write(sockfd_, buf, buf_len);
-	}	
+		write(sockfd_, buf, buf_len);
+	}
 }
 
 bool SaisunCom::isAlive(void)
@@ -109,7 +108,7 @@ bool SaisunCom::isConnect(uint8_t * buf,int * bytes_read)
 	}
 }
 
-bool SaisunCom::reconnect(void)
+void SaisunCom::reconnect(void)
 {
 
 	//reconnect

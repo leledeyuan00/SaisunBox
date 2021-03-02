@@ -50,7 +50,7 @@ public:
 
 	bool isConnect(uint8_t * buf,int *bytes_read);
 	bool isAlive(void);
-	bool reconnect(void);
+	void reconnect(void);
 };
 
 

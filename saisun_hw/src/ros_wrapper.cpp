@@ -36,6 +36,9 @@ void SaisunWrapper::ros_init(void)
         this,"saisun_robot_get_result");
 
     robot_pose_init_ = false;
+    init_goal_done_ = true;
+    trig_goal_done_ = true;
+    result_goal_done_ = true;
 }
 
 void SaisunWrapper::init(void)
@@ -85,6 +88,8 @@ void SaisunWrapper::initial_ac_cb(const GoalHandleInitial::WrappedResult& result
     uint8_t msg_body[body_len];
     memset(msg_body,0,body_len);
 
+    init_goal_done_ = true;
+
     switch (result.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
         break;
@@ -117,6 +122,8 @@ void SaisunWrapper::trigger_ac_cb(const GoalHandleTrigger::WrappedResult& result
     uint8_t msg_body[body_len];
     memset(msg_body,0,body_len);
 
+    trig_goal_done_ = true;    
+
     switch (result.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
         break;
@@ -138,6 +145,8 @@ void SaisunWrapper::trigger_ac_cb(const GoalHandleTrigger::WrappedResult& result
 
 void SaisunWrapper::result_ac_cb(const GoalHandleResult::WrappedResult& result)
 {
+    result_goal_done_ = true;
+
     switch (result.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
         break;
@@ -165,7 +174,7 @@ void SaisunWrapper::result_ac_cb(const GoalHandleResult::WrappedResult& result)
     msg_body[0] = result.result->detection_state;
     msg_body[1] = result.result->return_scene_group;
     msg_body[2] = object_num;
-
+    // RCLCPP_INFO(this->get_logger(),"Result Goal was successed %d", msg_body[0]);
     size_t offset = 4;
 
     for (size_t num = 0; num < object_pose.size(); num++)
@@ -193,8 +202,6 @@ void SaisunWrapper::initial_response(std::shared_future<GoalHandleInitial::Share
     auto goal_handle = future.get();
     if (!goal_handle) {
         RCLCPP_ERROR(this->get_logger(), "Initial Goal was rejected by server");
-    } else {
-        RCLCPP_INFO(this->get_logger(), "Initial Goal accepted by server, waiting for result");
     }
 }
 
@@ -203,8 +210,6 @@ void SaisunWrapper::trigger_response(std::shared_future<GoalHandleTrigger::Share
     auto goal_handle = future.get();
     if (!goal_handle) {
         RCLCPP_ERROR(this->get_logger(), "Trigger Goal was rejected by server");
-    } else {
-        RCLCPP_INFO(this->get_logger(), "Trigger Goal accepted by server, waiting for result");
     }
 }
 
@@ -213,8 +218,6 @@ void SaisunWrapper::result_response(std::shared_future<GoalHandleResult::SharedP
     auto goal_handle = future.get();
     if (!goal_handle) {
         RCLCPP_ERROR(this->get_logger(), "Result Goal was rejected by server");
-    } else {
-        RCLCPP_INFO(this->get_logger(), "Result Goal accepted by server, waiting for result");
     }
 }
 
@@ -245,12 +248,16 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
             std::bind(&SaisunWrapper::initial_response, this, _1);
         send_goal_option.result_callback=
             std::bind(&SaisunWrapper::initial_ac_cb,this,_1);
-        if (saisun_init_ac_->action_server_is_ready())
+        if (!saisun_init_ac_->action_server_is_ready())
+        {
+            init_goal_done_ = true;
+        }
+        if(init_goal_done_)
         {
             saisun_init_ac_->async_send_goal(init_goal,send_goal_option);
+            RCLCPP_INFO(this->get_logger(),"in init req");
+            init_goal_done_ = false;
         }
-        
-        RCLCPP_INFO(this->get_logger(),"in init");
         break;
     }
     case receiveMessageTypes::GET_TRIG:
@@ -261,15 +268,20 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
             std::bind(&SaisunWrapper::trigger_response, this, _1);
         send_goal_option.result_callback=
             std::bind(&SaisunWrapper::trigger_ac_cb,this,_1);
-        if (saisun_trig_ac_->action_server_is_ready())
+        if (!saisun_trig_ac_->action_server_is_ready())
         {
+            trig_goal_done_ = true;
+        }
+        if (trig_goal_done_)
+        { 
             trig_goal.trigger = msg_body[0];
             trig_goal.scene_group = msg_body[1];
             memcpy(&trig_goal.scene,&msg_body[4],sizeof(uint16_t));
             saisun_trig_ac_->async_send_goal(trig_goal,send_goal_option);
+            RCLCPP_INFO(this->get_logger(),"in trig req");
+            trig_goal_done_ = false;
         }
 
-        RCLCPP_INFO(this->get_logger(),"in trig");
         break;
     }
     case receiveMessageTypes::GET_DATA:
@@ -280,10 +292,16 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
             std::bind(&SaisunWrapper::result_response, this, _1);
         send_goal_option.result_callback=
             std::bind(&SaisunWrapper::result_ac_cb,this,_1);
-        if (saisun_result_ac_->action_server_is_ready())
+        if (!saisun_result_ac_->action_server_is_ready())
+        {
+            result_goal_done_ = true;
+        }
+        if(result_goal_done_)
         {
             result_goal.scene_group = msg_body[1];
             saisun_result_ac_->async_send_goal(result_goal,send_goal_option);
+            RCLCPP_INFO(this->get_logger(),"in result req");
+            result_goal_done_ = false;
         }
         break;
     }    
