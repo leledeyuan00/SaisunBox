@@ -8,7 +8,7 @@ class SmartEyeCameraController : public CameraController{
 public:
   bool connect(std::string serial_no, RegionOfInterest roi) override;
   bool disconnect(std::string serial_no) override;
-  bool getPointCloud(PointCloudColor::Ptr cloud_ptr) override;
+  bool getPointCloud(PointCloudColor::Ptr cloud_ptr, cv::Mat &color_mat) override;
 
 private:
   ProcessController controller_;

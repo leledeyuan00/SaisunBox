@@ -13,6 +13,14 @@ def rotate_xy(R):
     return R
 
 
+# keep axis-x of pose and axis-x of camera
+def reverse_x(R):
+    # 1. get the rotation matrix
+    rot = [[-1, 0, 0], [0, -1, 0], [0, 0, 1]]
+    # 2. rotate
+    R = np.dot(R, rot)
+    return R
+
 # estimated the 6d pose for the selected plane
 def pose_estimation(selected_plane):
     # 1. pre-process
@@ -112,11 +120,20 @@ def pose_estimation(selected_plane):
         rec_len = temp
     # print("wid = ", rec_wid, " len = ", rec_len)
 
-    # 11. transformation matrix to quaternion
+    # 11. 
+    angle_x = R[:, 0].dot([1, 0, 0])
+    angle_x = np.arccos(angle_x)
+    angle_x = 180*angle_x/3.141593
+    if(angle_x > 90):
+        R = reverse_x(R)
+
+    print("angle_x", angle_x)
+
+    # 12. transformation matrix to quaternion
     r = Rot.from_matrix(R)
     q = r.as_quat()
 
-    # 12. pose == [x y z rx ry rz rw]
+    # 13. pose == [x y z rx ry rz rw]
     pose = [t[0], t[1], t[2], q[0], q[1], q[2], q[3]]
 
     return R, t, pose, rec_wid, rec_len

@@ -187,6 +187,7 @@ void SaisunWrapper::result_ac_cb(const GoalHandleResult::WrappedResult& result)
         memcpy(&msg_body[offset + num * 64 + 3*4],&object_pose[num].o_angular.x,sizeof(float));
         memcpy(&msg_body[offset + num * 64 + 4*4],&object_pose[num].o_angular.y,sizeof(float));
         memcpy(&msg_body[offset + num * 64 + 5*4],&object_pose[num].o_angular.z,sizeof(float));
+        RCLCPP_INFO(this->get_logger(),"Result object position is[%f, %f, %f, %f, %f, %f]",object_pose[num].o_linear.x,object_pose[num].o_linear.y,object_pose[num].o_linear.z,object_pose[num].o_angular.x,object_pose[num].o_angular.y,object_pose[num].o_angular.z);
         // vision angular
         memcpy(&msg_body[offset + num * 64 + 6*4],&object_pose[num].v_angular.x,sizeof(float));
         memcpy(&msg_body[offset + num * 64 + 7*4],&object_pose[num].v_angular.y,sizeof(float));

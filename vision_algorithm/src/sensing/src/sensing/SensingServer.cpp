@@ -25,7 +25,8 @@ bool SensingServer::config(CAMERALMODEL model, RegionOfInterest roi) {
 
 bool SensingServer::senseObjectPose(geometry_msgs::msg::Pose &pose, double &width, double &height) {
     PointCloudColor::Ptr cloud_ptr(new PointCloudColor);
-    if(!camera_controller_ptr_->getPointCloud(cloud_ptr)){
+    cv::Mat color_img;
+    if(!camera_controller_ptr_->getPointCloud(cloud_ptr, color_img)){
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Get point cloud failed!");
         return false;
     }
@@ -36,7 +37,7 @@ bool SensingServer::senseObjectPose(geometry_msgs::msg::Pose &pose, double &widt
     pcl::io::savePLYFile(file_name,*cloud_ptr);
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get point cloud succeed!");
-    return sensing_algo_.getObjectPose(cloud_ptr, pose, width, height);
+    return sensing_algo_.getObjectPose(cloud_ptr, color_img, pose, width, height);
 }
 
 

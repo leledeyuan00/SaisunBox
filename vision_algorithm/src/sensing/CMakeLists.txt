@@ -22,7 +22,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(PCL COMPONENTS io REQUIRED)
 find_package(geometry_msgs REQUIRED)
-
+find_package(cv_bridge REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(saisun_msgs REQUIRED)
@@ -48,7 +48,8 @@ target_include_directories(sensing PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   /usr/include/pcl-1.10
-  /usr/include/python3.8)
+  /usr/include/python3.8
+  /usr/include/opencv4)
 
 #### Target package dependencies ####
 ament_target_dependencies(sensing
@@ -62,6 +63,7 @@ ament_export_include_directories(include)
 #### Target link libraries ####
 target_link_libraries(sensing
   python3.8
+  opencv_imgcodecs
 )
 
 #### Add test ####

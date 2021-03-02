@@ -39,7 +39,10 @@ colcon build
 python3 src/sensing/script/box/example_unstack.py
 python3 src/sensing/script/box/detect_interface.py  
 
-#If success, the first script should pop up visualization window with detection result, the seconds script will only print the detected pose and size. 
+
+# Change the model.yml path in config.py to "install/sensing/script/sensing/box/model.yml"
+# By default, these two scripts loaded point cloud from ./data/ply_0.ply, change the path if you want to test other files.
+# If success, the first script should pop up visualization window with detection result, the seconds script will only print the detected pose and plane size. 
 ```
 
 

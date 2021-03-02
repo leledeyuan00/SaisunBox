@@ -8,18 +8,11 @@ from collision import grasper_collision_test, box_collision_test
 import struct
 import time
 import cv2
+import pcl2_img
 
 params = parser.parse_args()
 
-def getImageArray(pts, width, height):
-    rgb_arr = pts[:, 3]
-    getb = lambda t: struct.pack('>f', t)[-1]
-    vfunc = np.vectorize(getb)
-    b_arr = vfunc(rgb_arr)
-    result = b_arr.reshape(height, width)
-    return result.astype(np.uint8)
-
-def detect(np_cloud, z_min, z_max, width, height):
+def detect(np_cloud, z_min, z_max):
     params.filter_z_max = z_min
     params.filter_z_min = z_max
     print(np_cloud.shape)

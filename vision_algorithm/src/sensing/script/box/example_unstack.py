@@ -1,20 +1,24 @@
 import stack_detection
 import pcl
 import time
+import cv2
+import pcl2_img
 
 from visualize import *
 import open3d as o3d
 
 # main program
 if __name__ == '__main__':
-    ply_path = '/home/jiang/saisun_ws/data/ply_0.ply'
+    ply_path = '../../../../data/ply_0.ply'
 
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()
-    print(cloud.width, cloud.height)
+
+    img = cv2.imread('../../../../data/img.jpg')
+    img = pcl2_img.rgb2gray(img)
 
     time1 = time.time()
-    success, result_tuple = stack_detection.detect_with_view(pts, cloud.width, cloud.height)
+    success, result_tuple = stack_detection.detect_with_view(pts, img)
     if(success):
         result, grasp_box, cluster_planes, idx = result_tuple
 

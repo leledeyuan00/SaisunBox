@@ -5,12 +5,12 @@ import time
 from config import parser
 import numpy as np
 import sys
+import cv2
+import pcl2_img
 
 params = parser.parse_args()
 
 def detect(np_cloud, z_min, z_max, width, height):
-    print("test")
-
     if(np_cloud.shape[1] == 8):
         np_cloud = np.delete(np_cloud, 3, 1)
         np_cloud = np.delete(np_cloud, 4, 1)
@@ -19,30 +19,54 @@ def detect(np_cloud, z_min, z_max, width, height):
 
     print(np_cloud.shape)
     type = params.type
-    # if(type == 0):
-    #     #box
-    #     return box_detection.detect(np_cloud, z_min, z_max, width, height)
-    # elif(type == 1):
-    #     return stack_detection.detect(np_cloud, z_min, z_max, width, height)
+    if(type == 0):
+        #box
+        return box_detection.detect(np_cloud, z_min, z_max)
+    elif(type == 1):
+        img = pcl2_img.getImageArray(np_cloud, cloud.width, cloud.height)
+        return stack_detection.detect(np_cloud, img)
 
-def testStack():
+def detectWithImg(np_cloud, img, z_min, z_max):
+    if(np_cloud.shape[1] == 8):
+        np_cloud = np.delete(np_cloud, 3, 1)
+        np_cloud = np.delete(np_cloud, 4, 1)
+        np_cloud = np.delete(np_cloud, 4, 1)
+        np_cloud = np.delete(np_cloud, 4, 1)
+
+    type = params.type
+    print("type:", type)
+
+    if(type == 0):
+        return box_detection.detect(np_cloud, z_min, z_max)
+    elif(type == 1):
+        print("img convert before")
+        img = pcl2_img.rgb2gray(img)
+        print("img convert finished")
+        return stack_detection.detect(np_cloud, img)
+
+def testStack(np_cloud, img, width, height):
     print("testStack")
-    ply_path = '../../../../data/ply_0.ply'
-    cloud = pcl.load_XYZRGB(ply_path)
-    pts = cloud.to_array()
+    detectWithImg(np_cloud, img, params.filter_z_max, params.filter_z_min)
+    #detect(np_cloud, params.filter_z_max, params.filter_z_min, width, height)
 
-    detect(pts, params.filter_z_max, params.filter_z_min, cloud.width, cloud.height)
-
-def testBox():
+def testBox(np_cloud, img):
     print("testBox")
+    detectWithImg(np_cloud, img, 1.0, 1.5)
+
+    
+if __name__ == '__main__':
     ply_path = '../../../../data/ply_0.ply'
     cloud = pcl.load_XYZRGB(ply_path)
     np_cloud = cloud.to_array()
-    detect(np_cloud, 1.0, 1.5, cloud.width, cloud.height)
-    
-if __name__ == '__main__':
+
+    img1 = cv2.imread('../../../../data/img.jpg')
+    # img1 = pcl2_img.rgb2gray(img1)
+
+    time1 = time.time()
     if(params.type == 1):
-        testStack()
+        testStack(np_cloud, img1, cloud.width, cloud.height)
     else:
-        testBox()
+        testBox(np_cloud, img1)
+    print('total time: ', time.time() - time1)
+
 

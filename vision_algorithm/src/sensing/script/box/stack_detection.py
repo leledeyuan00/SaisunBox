@@ -1,6 +1,5 @@
 import pcl
 import cv2
-from box_io import getImageArrayFast
 from segment import plane_extract
 from grasp_selection import grasp_selection
 from pose import pose_estimation
@@ -11,6 +10,7 @@ from conversion import get_edge_point_cloud, get_point_cloud_bb
 import numpy as np
 import struct
 import time
+import pcl2_img
 
 params = parser.parse_args()
 #  get camera intrinsic parameters
@@ -21,17 +21,8 @@ intrinsics[1, 1] = camera_paras[1]
 intrinsics[0, 2] = camera_paras[2]
 intrinsics[1, 2] = camera_paras[3]
 
-def getImageArray(pts, width, height):
-    rgb_arr = pts[:, 3]
-    getb = lambda t: struct.pack('>f', t)[-1]
-    vfunc = np.vectorize(getb)
-    b_arr = vfunc(rgb_arr)
-    result = b_arr.reshape(height, width)
-    return result.astype(np.uint8)
-
-
-def detect(np_cloud, z_min, z_max, width, height):
-    success, result = detect_with_view(np_cloud, width, height)
+def detect(np_cloud, gray_img):
+    success, result = detect_with_view(np_cloud, gray_img)
     if(success):
         _, _, pose, rec_wid, rec_len = result[0]
         print(pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6], rec_wid, rec_len)
@@ -40,11 +31,7 @@ def detect(np_cloud, z_min, z_max, width, height):
     print("No plane detected")
     return False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
-def detect_with_view(pts, width, height):
-    # 2. load image
-    gray_img = getImageArray(pts, int(width), int(height))
-    cv2.imwrite("result.jpg", gray_img)
-
+def detect_with_view(pts, gray_img):
     pts = pts[:, 0:3]
     print(pts.shape)
 

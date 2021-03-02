@@ -61,7 +61,7 @@ bool SmartEyeCameraController::disconnect(std::string serial_no) {
   return true;
 }
 
-bool SmartEyeCameraController::getPointCloud(PointCloudColor::Ptr cloud_ptr) {
+bool SmartEyeCameraController::getPointCloud(PointCloudColor::Ptr cloud_ptr, cv::Mat &color_mat) {
   if (!init_) {
     return false;
   }
@@ -69,6 +69,9 @@ bool SmartEyeCameraController::getPointCloud(PointCloudColor::Ptr cloud_ptr) {
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Start capture! ");
 
   controller_.captureThreeModel();
+
+  color_mat = controller_.get2DImage();
+
   PointCloud_SE_Ptr pointCloud;
   controller_.getPointCloud(pointCloud);
 
