@@ -17,7 +17,8 @@ def getImageArray(pts, width, height):
     return result.astype(np.uint8)
 
 def rgb2gray(img):
+    # cv2.imwrite("rgb.jpg", img)
     gray_img = img[:, :,0]
     #gray_img = gray_img[:, :, np.newaxis]
-    cv2.imwrite("gray.jpg", gray_img)
+    # cv2.imwrite("gray.jpg", gray_img)
     return gray_img

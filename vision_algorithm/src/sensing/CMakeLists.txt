@@ -68,7 +68,7 @@ target_link_libraries(sensing
 
 #### Add test ####
 add_executable(vision_node 
-  src/test.cpp
+  src/vision_node.cpp
 )
 target_link_libraries(vision_node
   sensing
@@ -83,7 +83,11 @@ ament_target_dependencies(vision_node
 
 #### Install ####
 install(TARGETS sensing
-  DESTINATION lib/${PROJECT_NAME})
+  # DESTINATION lib/${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 install(TARGETS vision_node
   DESTINATION lib/${PROJECT_NAME})
@@ -110,8 +114,8 @@ install(
   lib/smarteye/lib/libgxiapi.so
   lib/smarteye/lib/libicudata.so.60
   lib/smarteye/lib/GxU3VTL.cti
-  DESTINATION
-  lib/${PROJECT_NAME}
+  DESTINATION lib
+  # lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

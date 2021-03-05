@@ -35,10 +35,14 @@ def detectWithImg(np_cloud, img, z_min, z_max):
 
     type = params.type
     print("type:", type)
+    print("img is null?")
+    print(img)
+    # cv2.imwrite("./test_for_img.png",img)
 
     if(type == 0):
         return box_detection.detect(np_cloud, z_min, z_max)
     elif(type == 1):
+        # cv2.imwrite("image_raw.jpg",img)
         print("img convert before")
         img = pcl2_img.rgb2gray(img)
         print("img convert finished")
@@ -55,11 +59,11 @@ def testBox(np_cloud, img):
 
     
 if __name__ == '__main__':
-    ply_path = '../../../../data/ply_0.ply'
+    ply_path = '../../../../data/ply_10.ply'
     cloud = pcl.load_XYZRGB(ply_path)
     np_cloud = cloud.to_array()
 
-    img1 = cv2.imread('../../../../data/img.jpg')
+    img1 = cv2.imread('../../../../data/rgb.jpg')
     # img1 = pcl2_img.rgb2gray(img1)
 
     time1 = time.time()
