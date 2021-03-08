@@ -9,12 +9,12 @@ import open3d as o3d
 
 # main program
 if __name__ == '__main__':
-    ply_path = '../../../../data/ply_0.ply'
+    ply_path = '../../../../data/ply_10.ply'
 
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()
 
-    img = cv2.imread('../../../../data/img.jpg')
+    img = cv2.imread('../../../../data/image_raw.jpg')
     img = pcl2_img.rgb2gray(img)
 
     time1 = time.time()

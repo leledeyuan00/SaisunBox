@@ -3,7 +3,8 @@
 #include "sensing/SmartEyeCameraController.hpp"
 #include <pcl/io/ply_io.h>
 
-bool SensingServer::config(CAMERALMODEL model, RegionOfInterest roi) {
+bool SensingServer::config(CAMERALMODEL model, RegionOfInterest roi) 
+{
     switch (model)
     {
     case CAMERALMODEL::FAKE_CAMERA:
@@ -19,25 +20,26 @@ bool SensingServer::config(CAMERALMODEL model, RegionOfInterest roi) {
     }
 
     camera_controller_ptr_->connect("", roi);
-    sensing_algo_.config(roi);
+    // sensing_algo_.config(roi);
     return true;
 }
 
-bool SensingServer::senseObjectPose(geometry_msgs::msg::Pose &pose, double &width, double &height) {
-    PointCloudColor::Ptr cloud_ptr(new PointCloudColor);
-    cv::Mat color_img;
-    if(!camera_controller_ptr_->getPointCloud(cloud_ptr, color_img)){
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Get point cloud failed!");
-        return false;
-    }
-    // test for save pcl
-    std::string file_name = "ply_";
-    file_name.append(std::to_string(10));
-    file_name.append(".ply");
-    pcl::io::savePLYFile(file_name,*cloud_ptr);
-
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get point cloud succeed!");
-    return sensing_algo_.getObjectPose(cloud_ptr, color_img, pose, width, height);
+bool SensingServer::senseObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat &color_img)
+{
+  // cloud_ptr.reset(new PointCloudColor);
+  if(!camera_controller_ptr_->getPointCloud(cloud_ptr, color_img)){
+      RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Get point cloud failed!");
+      return false;
+  }
+  std::cout << "size of saved before" << cloud_ptr->points.size() << std::endl;
+  // test for save pcl
+  std::string file_name = "ply_";
+  file_name.append(std::to_string(10));
+  file_name.append(".ply");
+  pcl::io::savePLYFile(file_name,*cloud_ptr);
+  return true;
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get point cloud succeed!");
+  // return sensing_algo_.getObjectPose(cloud_ptr, color_img, pose, width, height);
 }
 
 

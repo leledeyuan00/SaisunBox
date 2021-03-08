@@ -1,4 +1,5 @@
 #include "sensing/SmartEyeCameraController.hpp"
+#include "pcl_conversions/pcl_conversions.h"
 
 
 bool SmartEyeCameraController::connect(std::string serial_no, RegionOfInterest roi) {

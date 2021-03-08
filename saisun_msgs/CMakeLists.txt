@@ -18,6 +18,8 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 set(custom_msgs
   "msg/ObjectPose.msg"
@@ -31,9 +33,15 @@ set(custom_actions
   "action/Trigger.action"
 )
 
+set(custon_srvs
+  "srv/VisionAlgorithm.srv"
+)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${custom_msgs}
   ${custom_actions}
+  ${custon_srvs}
+  DEPENDENCIES builtin_interfaces geometry_msgs sensor_msgs
 )
 # uncomment the following section in order to fill in
 # further dependencies manually.

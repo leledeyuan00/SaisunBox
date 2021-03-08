@@ -79,6 +79,7 @@ ament_target_dependencies(vision_node
   "saisun_msgs"
   "Eigen"
   "rclcpp_components"
+  "cv_bridge"
 )
 
 #### Install ####
