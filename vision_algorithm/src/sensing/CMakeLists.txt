@@ -28,6 +28,7 @@ find_package(rclcpp_action REQUIRED)
 find_package(saisun_msgs REQUIRED)
 find_package(Eigen REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(example_interfaces REQUIRED)
 
 # Set SmartEye dependency
 set(SmartEye_FOUND true)
@@ -80,7 +81,14 @@ ament_target_dependencies(vision_node
   "Eigen"
   "rclcpp_components"
   "cv_bridge"
+  "example_interfaces"
 )
+
+add_executable(saved_data
+  src/saved_data.cpp
+)
+target_link_libraries(saved_data sensing)
+ament_target_dependencies(saved_data rclcpp)
 
 #### Install ####
 install(TARGETS sensing
@@ -91,6 +99,9 @@ install(TARGETS sensing
 )
 
 install(TARGETS vision_node
+  DESTINATION lib/${PROJECT_NAME})
+
+install(TARGETS saved_data
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config

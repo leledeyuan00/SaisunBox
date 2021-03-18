@@ -17,9 +17,6 @@ def detect(np_cloud, z_min, z_max):
     params.filter_z_min = z_max
     print(np_cloud.shape)
     
-    image_arr = getImageArray(np_cloud, int(width), int(height))
-    cv2.imwrite("result.jpg", image_arr)
-
     #delete the intensity
     np_cloud = np.delete(np_cloud, 3, 1)
     print(np_cloud.shape)

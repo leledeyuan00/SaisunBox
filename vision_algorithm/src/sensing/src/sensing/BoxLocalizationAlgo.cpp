@@ -33,7 +33,7 @@ int BoxLocalizationAlgo::init(){
     PyRun_SimpleString("sys.path.append(\"/home/jiang/saisun_ws/install/sensing/script/sensing/box\")");
 
     // load our python script
-    pyModule_ = PyImport_ImportModule("detect_interface"); 
+    pyModule_ = PyImport_ImportModule("stack_detection"); 
     if (pyModule_ == NULL) {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get python module failed!");
     }
@@ -41,7 +41,7 @@ int BoxLocalizationAlgo::init(){
     PyObject *pyDict = PyModule_GetDict(pyModule_);
 
     // grab the functions we are interested in
-    pyFunc_ = PyDict_GetItemString(pyDict, "detectWithImg");
+    pyFunc_ = PyDict_GetItemString(pyDict, "detect");
     if (pyFunc_ == NULL) {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get python function failed!");
     }
@@ -61,8 +61,8 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat 
     PyObject *pArgs = PyTuple_New(4);
     PyTuple_SetItem(pArgs, 0, pCloud); 
     PyTuple_SetItem(pArgs, 1, pImag);
-    PyTuple_SetItem(pArgs, 2, pMinZ);
-    PyTuple_SetItem(pArgs, 3, pMaxZ);
+    // PyTuple_SetItem(pArgs, 2, pMinZ);
+    // PyTuple_SetItem(pArgs, 3, pMaxZ);
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "z: [%f %f]", roi_.z_offset / 1000.0, (roi_.z_offset + roi_.depth)/1000.0);
 

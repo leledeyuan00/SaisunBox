@@ -35,9 +35,6 @@ def detectWithImg(np_cloud, img, z_min, z_max):
 
     type = params.type
     print("type:", type)
-    print("img is null?")
-    print(img)
-    # cv2.imwrite("./test_for_img.png",img)
 
     if(type == 0):
         return box_detection.detect(np_cloud, z_min, z_max)
@@ -58,13 +55,11 @@ def testBox(np_cloud, img):
     detectWithImg(np_cloud, img, 1.0, 1.5)
 
     
-if __name__ == '__main__':
-    ply_path = '../../../../data/ply_10.ply'
+def test(ply_path, img_path):
     cloud = pcl.load_XYZRGB(ply_path)
     np_cloud = cloud.to_array()
 
-    img1 = cv2.imread('../../../../data/rgb.jpg')
-    # img1 = pcl2_img.rgb2gray(img1)
+    img1 = cv2.imread(img_path)
 
     time1 = time.time()
     if(params.type == 1):
@@ -72,5 +67,19 @@ if __name__ == '__main__':
     else:
         testBox(np_cloud, img1)
     print('total time: ', time.time() - time1)
+
+def testLoop():
+    i = 0
+    for c in range(50):
+        if i == 6:
+            i = 0
+        ply_path = "data/ply_" + str(i) + ".ply"
+        img_path = "data/img_" + str(i) + ".jpg"
+        print(ply_path, img_path)
+        test(ply_path, img_path)
+        i += 1
+
+if __name__ == '__main__':
+    test("./ply_0.ply","./img_0.jpg")
 
 
