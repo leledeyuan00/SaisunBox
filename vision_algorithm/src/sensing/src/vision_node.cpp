@@ -69,16 +69,10 @@ private:
     geometry_msgs::msg::Pose pose_;
     Eigen::Vector3f pose_euler_;
 
-    // rclcpp::Service<example_interfaces::srv::SetBool>::SharedPtr test_srv_;
     bool detect_result_ = false;
 
     void init(void);
     void ros_init(void);
-
-    // void test_handle(
-    //     const std::shared_ptr<rmw_request_id_t> request_header,
-    //     const std::shared_ptr<example_interfaces::srv::SetBool::Request> request,
-    //     const std::shared_ptr<example_interfaces::srv::SetBool::Response> response);
 };
 
 VisionNode::VisionNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()) : Node("vision_algorithm",options)
@@ -89,12 +83,6 @@ VisionNode::VisionNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions
 
 void VisionNode::init(void)
 {
-    // roi_.x_offset = -800.0;
-    // roi_.y_offset = -1404.0;
-    // roi_.z_offset = 600;
-    // roi_.width = 2216.0;
-    // roi_.height = 2274.0;
-    // roi_.depth = 800.0;
     roi_.x_offset = -800;
     roi_.y_offset = -800;
     roi_.z_offset = 1500;
@@ -103,7 +91,7 @@ void VisionNode::init(void)
     roi_.depth = 1670;
 
     cloud_ptr_.reset(new PointCloudColor());
-    sensing_server_.config(CAMERALMODEL::SMARTEYE_HV1000, roi_);
+    sensing_server_.config(CAMERALMODEL::FAKE_CAMERA, roi_); // TODO
 }
 
 void VisionNode::ros_init(void)
@@ -131,7 +119,6 @@ void VisionNode::ros_init(void)
 
     this->vision_client_ = this->create_client<saisun_msgs::srv::VisionAlgorithm>("object_pose_srv");
 
-    // this->test_srv_ = this->create_service<example_interfaces::srv::SetBool>("test_service",std::bind(&VisionNode::test_handle,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
 }
 
 // Action Initial function
@@ -198,10 +185,6 @@ void VisionNode::trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_
 {
     const auto goal = goal_handle->get_goal();
     auto as_result = std::make_shared<SaisunTrigger::Result>();
-    // sensor_msgs::msg::Image image_msgs;
-    // sensor_msgs::msg::PointCloud2 cloud_msgs;
-    // auto vision_srv = std::make_shared<saisun_msgs::srv::VisionAlgorithm::Request>();
-    // std::shared_future<std::shared_ptr<saisun_msgs::srv::VisionAlgorithm_Response>> vision_res;
     using namespace std::chrono_literals;
 
     double width = 0.0;
@@ -215,44 +198,12 @@ void VisionNode::trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_
         goal_handle->succeed(as_result);
         return;
     }
-    
-    // cv_bridge::CvImage img_bridge;
-    // std_msgs::msg::Header header;
-    // header.stamp = rclcpp::Node::get_clock()->now();
-    // img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::RGB8, color_mat_);
-    // img_bridge.toImageMsg(image_msgs);
 
-    // RCLCPP_INFO(this->get_logger(),"CONVERT IMAGE FINISH");
+    as_result->detection_state = 0x00;
+    as_result->return_scene_group = goal->scene_group;
+    Eigen::Quaternionf quart(pose_.orientation.x, pose_.orientation.y, pose_.orientation.z, pose_.orientation.w);
+    pose_euler_ = quart.matrix().eulerAngles(2,1,0);
 
-    // pcl::toROSMsg(*cloud_ptr_,cloud_msgs);
-
-    // RCLCPP_INFO(this->get_logger(),"CONVERT PCL FINISH");
-
-    // vision_srv->img = image_msgs;
-    // vision_srv->pcl = cloud_msgs;
-    
-    // std::cout << "size of converted" <<vision_srv->pcl.data.size() << std::endl;
-    // std::cout << "size of before" << cloud_ptr_->points.size() << std::endl;
-
-    // vision_res = vision_client_->async_send_request(vision_srv);
-
-    // rclcpp::FutureReturnCode srv_response = rclcpp::spin_until_future_complete(this->shared_from_this(),vision_res,10s);
-    
-
-    // if (vision_res.get()->success && srv_response == rclcpp::FutureReturnCode::SUCCESS)
-    // if (vision_res.get()->success)
-    {
-        // pose_ = vision_res.get()->object;
-
-        as_result->detection_state = 0x00;
-        as_result->return_scene_group = goal->scene_group;
-        Eigen::Quaternionf quart(pose_.orientation.x, pose_.orientation.y, pose_.orientation.z, pose_.orientation.w);
-        pose_euler_ = quart.matrix().eulerAngles(2,1,0);
-    }
-    // else{
-    //     as_result->detection_state = 0x01;
-    //     RCLCPP_ERROR(this->get_logger(),"Failed to call service vision_algorithm");
-    // }
     goal_handle->succeed(as_result);
 }
 

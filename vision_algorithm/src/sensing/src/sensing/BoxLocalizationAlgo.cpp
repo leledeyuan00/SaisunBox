@@ -30,7 +30,7 @@ int BoxLocalizationAlgo::init(){
 
     // add the current folder to the Python's PATH
     PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append(\"/home/jiang/saisun_ws/install/sensing/script/sensing/box\")");
+    PyRun_SimpleString("sys.path.append(\"/home/jiangxin/saisun_ws/install/sensing/script/sensing/box\")");
 
     // load our python script
     pyModule_ = PyImport_ImportModule("stack_detection"); 
@@ -58,7 +58,7 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat 
     PyObject* pImag = pyCreateImageArg(color_img, img_m);
     PyObject* pMinZ =  PyFloat_FromDouble(roi_.z_offset * 1.0 /1000);
     PyObject* pMaxZ =  PyFloat_FromDouble((roi_.z_offset + roi_.depth) * 1.0 / 1000);
-    PyObject *pArgs = PyTuple_New(4);
+    PyObject *pArgs = PyTuple_New(2);
     PyTuple_SetItem(pArgs, 0, pCloud); 
     PyTuple_SetItem(pArgs, 1, pImag);
     // PyTuple_SetItem(pArgs, 2, pMinZ);

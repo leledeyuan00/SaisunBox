@@ -6,10 +6,10 @@
         "limitSymbolsToIncludedHeaders": true
       },
       "includePath": [
-        "/home/jiang/saisun_ws/src/saisunbox/src/sensing/include/**",
+        "/home/jiangxin/saisun_ws/src/saisunbox/src/sensing/include/**",
         "/opt/ros/foxy/include/**",
         "/usr/include/**",
-        "/home/jiang/saisun_ws/install/saisun_msgs/include/**"
+        "/home/jiangxin/saisun_ws/install/saisun_msgs/include/**"
       ],
       "name": "ROS"
     }

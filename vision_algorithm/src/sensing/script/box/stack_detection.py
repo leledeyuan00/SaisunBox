@@ -12,7 +12,6 @@ import numpy as np
 import struct
 import time
 import pcl2_img
-import open3d as o3d
 
 params = parser.parse_args()
 #  get camera intrinsic parameters
