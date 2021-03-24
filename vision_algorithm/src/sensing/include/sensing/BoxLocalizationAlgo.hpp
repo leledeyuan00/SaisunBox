@@ -19,5 +19,7 @@ private:
     PyObject *pyModule_;
     PyObject *pyFunc_;
 
+    bool run_once_;
+
     int init();
 };

@@ -23,6 +23,7 @@ intrinsics[0, 2] = camera_paras[2]
 intrinsics[1, 2] = camera_paras[3]
 
 def detect(np_cloud, gray_img):
+    gray_img = pcl2_img.rgb2gray(gray_img)
     success, result = detect_with_view(np_cloud, gray_img)
     if(success):
         _, _, pose, rec_wid, rec_len = result[0]
@@ -33,6 +34,7 @@ def detect(np_cloud, gray_img):
     return False, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 def detect_with_view(pts, gray_img):
+
     pts = pts[:, 0:3]
     print(pts.shape)
 

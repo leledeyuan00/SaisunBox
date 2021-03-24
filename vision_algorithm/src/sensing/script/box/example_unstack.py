@@ -9,12 +9,12 @@ from visualize import *
 import open3d as o3d
 
 def single_file_test():
-    ply_path = '/home/jiang/lg/data6/ply/17_48_38.ply'
+    ply_path = './ply_0.ply'
 
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()
 
-    img = cv2.imread('/home/jiang/lg/data6/img/17_48_38.png')
+    img = cv2.imread('./img.png')
     img = pcl2_img.rgb2gray(img)
 
     time1 = time.time()

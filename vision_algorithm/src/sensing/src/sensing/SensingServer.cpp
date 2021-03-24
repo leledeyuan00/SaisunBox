@@ -37,13 +37,23 @@ bool SensingServer::senseObjectPose(geometry_msgs::msg::Pose &pose, double &widt
 {
   PointCloudColor::Ptr cloud_ptr(new PointCloudColor);
   cv::Mat color_img;
+  bool success;
   if(!camera_controller_ptr_->getPointCloud(cloud_ptr, color_img)){
       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Get point cloud failed!");
       return false;
   }
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get point cloud succeed!");
-  return sensing_algo_.getObjectPose(cloud_ptr, color_img, pose, width, height);
+  try
+  {
+    success = sensing_algo_.getObjectPose(cloud_ptr, color_img, pose, width, height);
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    success = false;
+  }
+  return success;
 }
 
 

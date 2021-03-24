@@ -58,9 +58,12 @@ private:
     rclcpp_action::CancelResponse trigger_cancel(const std::shared_ptr<GoalHandleTrigger> goal_handle);
     rclcpp_action::CancelResponse result_cancel(const std::shared_ptr<GoalHandleResult> goal_handle);
 
+    void vision_handle(const std::shared_ptr<GoalHandleTrigger> goal_handle);
+
     void initial_accepted(const std::shared_ptr<GoalHandleInitial> goal_handle);
     void trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_handle);
     void result_accepted(const std::shared_ptr<GoalHandleResult> goal_handle);
+
 
     SensingServer sensing_server_;
     RegionOfInterest roi_;
@@ -181,7 +184,8 @@ void VisionNode::initial_accepted(const std::shared_ptr<GoalHandleInitial> goal_
     goal_handle->succeed(as_result);
 }
 
-void VisionNode::trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_handle)
+// vision handle
+void VisionNode::vision_handle(const std::shared_ptr<GoalHandleTrigger> goal_handle)
 {
     const auto goal = goal_handle->get_goal();
     auto as_result = std::make_shared<SaisunTrigger::Result>();
@@ -206,6 +210,15 @@ void VisionNode::trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_
 
     goal_handle->succeed(as_result);
 }
+
+void VisionNode::trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_handle)
+{
+    // this needs to return quickly to avoid blocking the executor, so spin up a new thread
+
+    std::thread{std::bind(&VisionNode::vision_handle, this, std::placeholders::_1), goal_handle}.detach();
+}
+
+
 
 void VisionNode::result_accepted(const std::shared_ptr<GoalHandleResult> goal_handle)
 {

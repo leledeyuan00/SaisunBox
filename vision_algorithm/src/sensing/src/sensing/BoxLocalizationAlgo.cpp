@@ -11,6 +11,7 @@ PyObject* pyCreatePointCloudColorArg(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
 
 BoxLocalizationAlgo::BoxLocalizationAlgo() {
     init();
+    run_once_ = false;
 }
 
 BoxLocalizationAlgo::~BoxLocalizationAlgo() {
@@ -24,6 +25,7 @@ void BoxLocalizationAlgo::config(RegionOfInterest roi) {
 
 int BoxLocalizationAlgo::init(){
     Py_Initialize(); 
+    PyEval_InitThreads();
 
     // this macro is defined be NumPy and must be included
     import_array();
@@ -51,6 +53,16 @@ int BoxLocalizationAlgo::init(){
 
 bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat color_img, 
     geometry_msgs::msg::Pose &pose, double &width, double &height) {
+    
+
+    if(!run_once_)
+    {
+        PyEval_ReleaseLock();
+        run_once_ = true;
+    }
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
 
     float *cloud_m = NULL;
     PyObject* pCloud = pyCreatePointCloudColorArg(cloud_ptr, cloud_m);
@@ -99,6 +111,7 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat 
     delete[] img_m;
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Python script finished!");
+    PyGILState_Release(gstate);
     return success;
 }
 
