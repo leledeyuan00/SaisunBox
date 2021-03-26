@@ -94,7 +94,7 @@ void VisionNode::init(void)
     roi_.depth = 1670;
 
     cloud_ptr_.reset(new PointCloudColor());
-    sensing_server_.config(CAMERALMODEL::FAKE_CAMERA, roi_); // TODO
+    sensing_server_.config(CAMERALMODEL::SMARTEYE_HV1000, roi_); // TODO
 }
 
 void VisionNode::ros_init(void)

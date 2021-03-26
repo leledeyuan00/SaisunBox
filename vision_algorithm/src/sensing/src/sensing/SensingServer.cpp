@@ -2,6 +2,7 @@
 #include "sensing/FakeCameraController.hpp"
 #include "sensing/SmartEyeCameraController.hpp"
 #include <pcl/io/ply_io.h>
+#include <opencv2/opencv.hpp>
 
 bool SensingServer::config(CAMERALMODEL model, RegionOfInterest roi) 
 {
@@ -42,6 +43,9 @@ bool SensingServer::senseObjectPose(geometry_msgs::msg::Pose &pose, double &widt
       RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Get point cloud failed!");
       return false;
   }
+
+  pcl::io::savePLYFile("ply_temp.ply",*cloud_ptr);
+  cv::imwrite("img_temp.png",color_img);
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get point cloud succeed!");
   try

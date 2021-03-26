@@ -8,7 +8,7 @@ parser.add_argument('--type', type=int, default= 1)
 parser.add_argument('--model', type=str, default='model.yml')
 parser.add_argument('--downsample_resolution', type=float, default=0.002, help='the resolution for pcl voxel grid filter')
 parser.add_argument('--filter_z_min', type=float, default=3.1) # 1354 for 11.30 data
-parser.add_argument('--filter_z_max', type=float, default=1.8) # 1000 for 11.30 data
+parser.add_argument('--filter_z_max', type=float, default=1.5) # 1000 for 11.30 data
 parser.add_argument('--filter_y_min', type=float, default=1.0)  # roi in y-axis
 parser.add_argument('--filter_y_max', type=float, default=-1.0) # roi in y-axis
 
@@ -36,7 +36,7 @@ parser.add_argument('--grasper_size_para', type=list,
 
 # edge detection relevant
 parser.add_argument('--camera_intrinsics', type=list,
-                    default=[2.3395201744955079e+03, 2.3395201744955079e+03, 799, 980])  # camera value3: smaller->left
+                    default=[2.3472340283994704e+03, 2.3472340283994704e+03, 799, 980])  # camera value3: smaller->left
 parser.add_argument('--PREPROCESS_THRESHOLD_DEFAULT', type=int, default=30)  # threshold for edge detection
 
 # task relevant
