@@ -124,12 +124,6 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
     uint8_t temp[max_buff_len];
     memset(temp,0,sizeof(max_buff_len));
     cmemcpy(&temp[0],buf,buf_len);
-    printf("buff len is %d\r\n", buf_len);
-    std::cout << "in Saisun state buf :\r\n[ ";
-	for (size_t i = 0; i < 20; i++)
-	{
-		printf("%x ,",buf[i]);
-	}
 
     // if (use_net_sequence_)
     // {
@@ -147,11 +141,6 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
     cmemcpy(&robot_version_.major_version,&temp[6],sizeof(uint16_t));
     cmemcpy(&robot_version_.minor_version,&temp[4],sizeof(uint16_t));
 
-    std::cout << "in Saisun temp buf :\r\n[ ";
-	for (size_t i = 0; i < buf_len; i++)
-	{
-		printf("%x ,",temp[i]);
-	}
 
     uint16_t check_bytes = 0x0001;
     uint16_t receive_check_bytes;
@@ -162,7 +151,6 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
         std::cout << "\033[33m" << "Receive an irregular message. Receive type is 0x"<< receive_check_bytes <<", try switch net_sequence in config.yaml" << "\033[0m" <<std::endl;
         return;
     }
-    std::cout << "after check" <<std::endl;
     if (temp[8] == 0x01) // robot req
     {
         uint32_t receive_buf_len;
@@ -181,20 +169,20 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
         {
         case receiveMessageTypes::GET_SYNC:
         {
-            printf("I'm in sync");
+            printf("I'm in sync\r\n");
             uint8_t body = (uint8_t)vision_state_;
             pack(SEND_SYNC,&body,1);
             break;
         }
         case receiveMessageTypes::GET_POSE:
         {
-            printf("I'm in pose");
+            printf("I'm in pose\r\n");
             robot_pose_res(&temp[16],(net_com_len - 16));
             break;
         }
         default:
         {
-            printf("I'm in default");
+            printf("I'm in command task \r\n");
             cmemcpy(receive_body_,&temp[16],(net_com_len - 16));
             is_new_message_ = true;
             break;

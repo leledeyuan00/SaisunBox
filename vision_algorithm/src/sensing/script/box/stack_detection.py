@@ -44,8 +44,6 @@ def detect_with_view(pts, gray_img):
     # print('time cost for segmentation: ', time.time() - time1)
     grasp_plane_ids = sort_with_height(cluster_planes, params)
     # visualize_scene(cluster_planes)
-    print("grasp plan len is:" + str(len(grasp_plane_ids)))
-    print("cluster plan len is:" + str(len(cluster_planes)))
     if (len(cluster_planes) != 0):
         for i in range(len(grasp_plane_ids)):
             # 3.1 get the corresponding sub-image for this extracted plane
@@ -69,7 +67,7 @@ def detect_with_view(pts, gray_img):
                 # 3.3 get the edge points
                 edge_pts = get_edge_point_cloud(pts, edges)
                 # print("edge_pts: ", edge_pts.shape)
-                np.savetxt("edge_pts.txt", edge_pts)
+                # np.savetxt("edge_pts.txt", edge_pts)
 
                 # 3.4 filtering the neighboring points near the edge points
                 # time1 = time.time()

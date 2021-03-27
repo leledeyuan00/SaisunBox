@@ -43,26 +43,20 @@ SaisunCom::SaisunCom(std::string host,unsigned int port)
 	if( (sockfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1 ){
         printf("create socket error: %s(errno: %d)\n",strerror(errno),errno);
     }
-	std::cout << "num1" << std::endl;
     memset(&sec_serv_addr_, 0, sizeof(sec_serv_addr_));
     sec_serv_addr_.sin_family = AF_INET;
     sec_serv_addr_.sin_addr.s_addr = htonl(INADDR_ANY);
     sec_serv_addr_.sin_port = htons(port_);
-	std::cout << "num2 " << std::endl;
     if( bind(sockfd_, (struct sockaddr*)&sec_serv_addr_, sizeof(sec_serv_addr_)) == -1){
         printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);
     }
-	printf("listening...");
     if( listen(sockfd_, 10) == -1){
         printf("listen socket error: %s(errno: %d)\n",strerror(errno),errno);
     }
 
-	std::cout << "waiting data from client" << std::endl;
 	if( (connfd_ = accept(sockfd_, (struct sockaddr*)NULL, NULL)) == -1){
 		printf("accept socket error: %s(errno: %d)",strerror(errno),errno);
 	}
-
-    printf("======waiting for client's request======\n");
 
 	connected_ = false;
 	keepalive_ = false;
@@ -73,7 +67,6 @@ bool SaisunCom::start() {
 
 	fd_set writefds;
 	struct timeval timeout;
-	std::cout << "Saisun Robot: Connecting ..." << std::endl;
 	// connect(sockfd_, (struct sockaddr *) &sec_serv_addr_,
 	// 		sizeof(sec_serv_addr_));
 
@@ -126,7 +119,6 @@ bool SaisunCom::start() {
 	// FD_ZERO(&readfds_);
 	// FD_SET(sockfd_, &readfds_);
 
-	std::cout << "waiting 2 " << std::endl;
 	connected_ = true;
 	bool success = true;
 	return success;
@@ -175,17 +167,8 @@ bool SaisunCom::isConnect(uint8_t * buf,int * bytes_read)
 	// }
 	
 
-	std::cout << "receive over" << std::endl;
 	*bytes_read = recv(connfd_, buf, 2048, 0);
 	printf("recv msg from client: %s\n", buf);
-        // close(connfd);
-	std::cout << "waiting data from client over" << std::endl;
-	std::cout << "begin buf :[ ";
-	for (size_t i = 0; i < 20; i++)
-	{
-		printf("%x ,",buf[i]);
-	}
-	std::cout << std::endl;
 }
 
 void SaisunCom::reconnect(void)
@@ -227,70 +210,3 @@ void SaisunCom::reconnect(void)
 		}
 	}
 }
-
-// void SaisunCom::run(){
-// 	std::cout << "start TCP connection" << std::endl;
-// 	uint8_t buf[2048];
-// 	int bytes_read;
-// 	bzero(buf, 2048);
-// 	struct timeval timeout;
-// 	fd_set readfds;
-// 	FD_ZERO(&readfds);
-// 	FD_SET(sockfd_, &readfds);
-// 	connected_ = true;
-// 	while (keepalive_) {
-// 		while (connected_ && keepalive_) {
-// 			timeout.tv_sec = 1; //do this each loop as selects modifies timeout
-// 			timeout.tv_usec = 500000; // timeout of 0.5 sec
-// 			select(sockfd_ + 1, &readfds, NULL, NULL, &timeout);
-// 			bytes_read = read(sockfd_, buf, 2048); // usually only up to 1295 bytes
-// 			if (bytes_read > 0) {
-// 				setsockopt(sockfd_, IPPROTO_TCP, TCP_QUICKACK,
-// 						(char *) &flag_, sizeof(int));
-// 			} else {
-// 				connected_ = false;
-// 				close(sockfd_);
-// 			}
-// 		}
-// 		if (keepalive_) {
-// 			//reconnect
-// 			std::cout << "Saisun Robot: No connection. Is controller crashed? Will try to reconnect in 10 seconds..." << std::endl;
-// 			sockfd_ = socket(AF_INET, SOCK_STREAM, 0);
-// 			if (sockfd_ < 0) {
-// 				std::cout << ("ERROR opening Saisun Robot socket") << std::endl;
-// 			}
-// 			flag_ = 1;
-// 			setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY, (char *) &flag_,
-// 					sizeof(int));
-// 			setsockopt(sockfd_, IPPROTO_TCP, TCP_QUICKACK, (char *) &flag_,
-// 					sizeof(int));
-// 			setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, (char *) &flag_,
-// 					sizeof(int));
-// 			fcntl(sockfd_, F_SETFL, O_NONBLOCK);
-// 			while (keepalive_ && !connected_) {
-// 				std::this_thread::sleep_for(std::chrono::seconds(10)); // 10s delay
-// 				fd_set writefds;
-
-// 				connect(sockfd_, (struct sockaddr *) &sec_serv_addr_,
-// 						sizeof(sec_serv_addr_));
-// 				FD_ZERO(&writefds);
-// 				FD_SET(sockfd_, &writefds);
-// 				select(sockfd_ + 1, NULL, &writefds, NULL, NULL);
-// 				unsigned int flag_len;
-// 				getsockopt(sockfd_, SOL_SOCKET, SO_ERROR, &flag_,
-// 						&flag_len);
-// 				if (flag_ < 0) {
-// 					std::cout << ("Error re-connecting to port 9999. Is controller started? Will try to reconnect in 10 seconds...") << std::endl;
-// 				} else {
-// 					connected_ = true;
-// 					FD_ZERO(&readfds);
-// 					FD_SET(sockfd_, &readfds);
-// 					std::cout << ("Saisun Robot: Reconnected") << std::endl;
-// 				}
-// 			}
-// 		}
-// 	}
-// 	//wait for some traffic.
-// 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-// 	close(sockfd_);
-// }

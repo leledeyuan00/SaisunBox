@@ -102,13 +102,10 @@ def sort_with_height(cluster_planes, params):
     for i in range(len(plane_scores)):
         if (zmax - 0.2) <= plane_scores[i][1]:
             plane_scores[i][1] = 2
-            print("box z "+ str(i) + " is " + str(plane_scores[i][1]))
         else:
             plane_scores[i][1] = 1
 
     # 2. sort_with_height/occlusion/plane_size
     grasp_plane_ids = get_grasp_plane_id_hard(plane_scores)
 
-    print(plane_scores)
-    print("grasp id is " + str(grasp_plane_ids))
     return grasp_plane_ids

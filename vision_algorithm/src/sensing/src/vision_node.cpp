@@ -28,6 +28,8 @@
 #include <pcl/io/ply_io.h>
 #include <opencv2/opencv.hpp>
 
+#include "kdl/kinfam_io.hpp"
+
 class VisionNode: public rclcpp::Node
 {
 public:
@@ -70,18 +72,25 @@ private:
     cv::Mat color_mat_;
     PointCloudColor::Ptr cloud_ptr_;
     geometry_msgs::msg::Pose pose_;
-    Eigen::Vector3f pose_euler_;
+    Eigen::Vector3d pose_euler_;
+
+    KDL::Frame robo2Camera_; 
 
     bool detect_result_ = false;
 
     void init(void);
     void ros_init(void);
+    double normalize_angle(double angle);
+    void test_single_file(void);
 };
 
 VisionNode::VisionNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()) : Node("vision_algorithm",options)
 {
     init();
     ros_init();
+
+    // for test
+    // test_single_file();
 }
 
 void VisionNode::init(void)
@@ -95,6 +104,13 @@ void VisionNode::init(void)
 
     cloud_ptr_.reset(new PointCloudColor());
     sensing_server_.config(CAMERALMODEL::SMARTEYE_HV1000, roi_); // TODO
+
+    robo2Camera_ = KDL::Frame(
+        KDL::Rotation(-0.02515, 0.99934, 0.02618, 
+                    0.99832, 0.02647, -0.05164,
+                    -0.05230, 0.02484, -0.99832),
+        KDL::Vector(1518.18,-1626.964,2389.575)
+    );
 }
 
 void VisionNode::ros_init(void)
@@ -190,11 +206,12 @@ void VisionNode::vision_handle(const std::shared_ptr<GoalHandleTrigger> goal_han
     const auto goal = goal_handle->get_goal();
     auto as_result = std::make_shared<SaisunTrigger::Result>();
     using namespace std::chrono_literals;
+    geometry_msgs::msg::Pose pose;
 
     double width = 0.0;
     double height = 0.0;
     
-    detect_result_ = sensing_server_.senseObjectPose(pose_,width, height);
+    detect_result_ = sensing_server_.senseObjectPose(pose,width, height);
 
     if (!detect_result_)
     {
@@ -205,9 +222,24 @@ void VisionNode::vision_handle(const std::shared_ptr<GoalHandleTrigger> goal_han
 
     as_result->detection_state = 0x00;
     as_result->return_scene_group = goal->scene_group;
-    Eigen::Quaternionf quart(pose_.orientation.x, pose_.orientation.y, pose_.orientation.z, pose_.orientation.w);
-    pose_euler_ = quart.matrix().eulerAngles(2,1,0);
+    Eigen::Quaternionf quart(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 
+    KDL::Rotation cam2objR = KDL::Rotation::Quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+    KDL::Frame cam2objT(cam2objR,KDL::Vector(pose.position.x * 1000,pose.position.y *1000,pose.position.z *1000));
+
+    KDL::Frame robo2objT = robo2Camera_ * cam2objT;
+
+    KDL::Rotation robo2objR = robo2objT.M;
+    KDL::Vector robo2objV = robo2objT.p;
+    pose_.position.x = robo2objV.data[0] - 195;
+    pose_.position.y = robo2objV.data[1] + 205;
+    pose_.position.z = robo2objV.data[2] - 260;
+
+    robo2objR.GetRPY(pose_euler_(0),pose_euler_(1),pose_euler_(2));
+    pose_euler_(0) = normalize_angle(pose_euler_(0)); 
+    pose_euler_(1) = normalize_angle(pose_euler_(1)); 
+    pose_euler_(2) = normalize_angle(pose_euler_(2)); 
+    // RCLCPP_INFO(this->get_logger(),"RPY is [%f, %f, %f]",pose_euler_(0),pose_euler_(1),pose_euler_(2));
     goal_handle->succeed(as_result);
 }
 
@@ -217,8 +249,6 @@ void VisionNode::trigger_accepted(const std::shared_ptr<GoalHandleTrigger> goal_
 
     std::thread{std::bind(&VisionNode::vision_handle, this, std::placeholders::_1), goal_handle}.detach();
 }
-
-
 
 void VisionNode::result_accepted(const std::shared_ptr<GoalHandleResult> goal_handle)
 {
@@ -234,9 +264,9 @@ void VisionNode::result_accepted(const std::shared_ptr<GoalHandleResult> goal_ha
         obPose.o_linear.x = pose_.position.x;
         obPose.o_linear.y = pose_.position.y;
         obPose.o_linear.z = pose_.position.z;
-        obPose.o_angular.x = pose_euler_[0];
-        obPose.o_angular.y = pose_euler_[1];
-        obPose.o_angular.z = pose_euler_[2];
+        obPose.o_angular.x = pose_euler_(0);
+        obPose.o_angular.y = pose_euler_(1);
+        obPose.o_angular.z = pose_euler_(2);
         as_result->object_pos.push_back(obPose);
         as_result->return_scene_group = goal->scene_group;
     } else {
@@ -245,6 +275,54 @@ void VisionNode::result_accepted(const std::shared_ptr<GoalHandleResult> goal_ha
         as_result->detection_state = 0x01;
     }
     goal_handle->succeed(as_result);
+}
+
+void VisionNode::test_single_file(void)
+{
+    using namespace std::chrono_literals;
+    geometry_msgs::msg::Pose pose;
+
+    double width = 0.0;
+    double height = 0.0;
+    
+    detect_result_ = sensing_server_.senseObjectPose(pose,width, height);
+
+    if (!detect_result_)
+    {
+        return;
+    }
+
+    Eigen::Quaternionf quart(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+
+    KDL::Rotation cam2objR = KDL::Rotation::Quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+    KDL::Frame cam2objT(cam2objR,KDL::Vector(pose.position.x * 1000,pose.position.y *1000,pose.position.z *1000));
+
+    KDL::Frame robo2objT = robo2Camera_ * cam2objT;
+
+    KDL::Rotation robo2objR = robo2objT.M;
+    KDL::Vector robo2objV = robo2objT.p;
+    pose_.position.x = robo2objV.data[0] - 195;
+    pose_.position.y = robo2objV.data[1] + 205;
+    pose_.position.z = robo2objV.data[2] - 260;
+
+    robo2objR.GetRPY(pose_euler_(0),pose_euler_(1),pose_euler_(2));
+    pose_euler_(0) = normalize_angle(pose_euler_(0)); 
+    pose_euler_(1) = normalize_angle(pose_euler_(1)); 
+    pose_euler_(2) = normalize_angle(pose_euler_(2)); 
+    RCLCPP_INFO(this->get_logger(),"RPY is [%f, %f, %f]",pose_euler_(0),pose_euler_(1),pose_euler_(2));
+}
+
+double VisionNode::normalize_angle(double angle)
+{
+    // control angle to -PI/2 ~ PI/2
+    double angle_t;
+    if(angle > KDL::PI/2 && angle < KDL::PI){
+        angle_t = angle - KDL::PI;
+    }
+    else if(angle < -KDL::PI/2 && angle > -KDL::PI){
+        angle_t = KDL::PI + angle;
+    }
+    return angle_t;
 }
 
 int main(int argc, char **argv)
