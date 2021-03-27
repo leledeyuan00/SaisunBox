@@ -1,7 +1,7 @@
 import pcl
 import cv2
 from segment import plane_extract, is_perp_plane
-from grasp_selection import grasp_selection
+from grasp_selection import sort_with_height
 from pose import pose_estimation
 from config import parser
 from collision import grasper_collision_test, box_collision_test
@@ -42,9 +42,10 @@ def detect_with_view(pts, gray_img):
     grasp_box = pts
     cluster_planes, cloud_ds = plane_extract(pts, params)
     # print('time cost for segmentation: ', time.time() - time1)
-    grasp_plane_ids = grasp_selection(cluster_planes, params)
+    grasp_plane_ids = sort_with_height(cluster_planes, params)
     # visualize_scene(cluster_planes)
-
+    print("grasp plan len is:" + str(len(grasp_plane_ids)))
+    print("cluster plan len is:" + str(len(cluster_planes)))
     if (len(cluster_planes) != 0):
         for i in range(len(grasp_plane_ids)):
             # 3.1 get the corresponding sub-image for this extracted plane

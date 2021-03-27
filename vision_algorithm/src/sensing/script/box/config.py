@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser()
 # WUXI LAB
 # segment relevant
 parser.add_argument('--type', type=int, default= 1)
-parser.add_argument('--model', type=str, default='model.yml')
+parser.add_argument('--model', type=str, default='/home/jiangxin/saisun_ws/model.yml')
 parser.add_argument('--downsample_resolution', type=float, default=0.002, help='the resolution for pcl voxel grid filter')
 parser.add_argument('--filter_z_min', type=float, default=3.1) # 1354 for 11.30 data
 parser.add_argument('--filter_z_max', type=float, default=1.5) # 1000 for 11.30 data

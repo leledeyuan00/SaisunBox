@@ -9,12 +9,13 @@ from visualize import *
 import open3d as o3d
 
 def single_file_test():
-    ply_path = './ply_temp.ply'
+    data_name = "17_50_49"
+    ply_path = '/home/jiangxin/lg/data6/ply/' + data_name + '.ply'
 
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()
 
-    img = cv2.imread('./img_temp.png')
+    img = cv2.imread('/home/jiangxin/lg/data6/img/'+ data_name + '.png')
     img = pcl2_img.rgb2gray(img)
 
     time1 = time.time()
@@ -30,10 +31,10 @@ def single_file_test():
         # 3.7 visulization in the scene
         print('total time: ', time.time() - time1)
 
-        pts = pts[:, 0:3]
-        scene = o3d.geometry.PointCloud()
-        scene.points = o3d.utility.Vector3dVector(pts)
-        visualize_pose_in_raw_pts(scene, grasp_box[:, 0:3], R, t)
+        # pts = pts[:, 0:3]
+        # scene = o3d.geometry.PointCloud()
+        # scene.points = o3d.utility.Vector3dVector(pts)
+        # visualize_pose_in_raw_pts(scene, grasp_box[:, 0:3], R, t)
     else:
         print('No plane')
 

@@ -24,11 +24,13 @@
 
 #include "saisun_hw/visibiblity_control.h"
 
+extern void cmemcpy(void * bufout,const void * bufin, size_t len);
+
 class SaisunCom
 {
 private:
 	// TCP protocol
-    int sockfd_;
+    int sockfd_,connfd_;
 	struct sockaddr_in pri_serv_addr_, sec_serv_addr_;
 	struct hostent *server_;
 	bool keepalive_;
