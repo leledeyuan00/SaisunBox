@@ -11,7 +11,11 @@ PyObject* pyCreatePointCloudColorArg(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
 
 BoxLocalizationAlgo::BoxLocalizationAlgo() {
     init();
-    run_once_ = true;
+    #ifdef TEST_ALGORITHM
+        run_once_ = true;
+    #else 
+        run_once_ = false;
+    #endif
 }
 
 BoxLocalizationAlgo::~BoxLocalizationAlgo() {

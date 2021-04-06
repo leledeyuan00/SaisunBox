@@ -6,6 +6,8 @@
 #include "sensing/RegionOfInterest.hpp"
 #include <opencv2/core/mat.hpp>
 
+// #define TEST_ALGORITHM
+
 class BoxLocalizationAlgo {
 public:
     BoxLocalizationAlgo();

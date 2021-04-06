@@ -44,8 +44,8 @@ bool SensingServer::senseObjectPose(geometry_msgs::msg::Pose &pose, double &widt
       return false;
   }
 
-  // pcl::io::savePLYFile("ply_temp.ply",*cloud_ptr);
-  // cv::imwrite("img_temp.png",color_img);
+  pcl::io::savePLYFile("ply_temp.ply",*cloud_ptr);
+  cv::imwrite("img_temp.png",color_img);
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get point cloud succeed!");
   try

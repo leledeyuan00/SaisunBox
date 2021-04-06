@@ -9,13 +9,13 @@ from visualize import *
 import open3d as o3d
 
 def single_file_test():
-    data_name = "17_50_49"
-    ply_path = '/home/jiangxin/lg/data6/ply/' + data_name + '.ply'
+    data_name = "10_34_29"
+    ply_path = '/home/jiangxin/lg/data1/ply/' + data_name + '.ply'
 
     cloud = pcl.load_XYZRGB(ply_path)
     pts = cloud.to_array()
 
-    img = cv2.imread('/home/jiangxin/lg/data6/img/'+ data_name + '.png')
+    img = cv2.imread('/home/jiangxin/lg/data1/img/'+ data_name + '.png')
     img = pcl2_img.rgb2gray(img)
 
     time1 = time.time()

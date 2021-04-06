@@ -30,7 +30,7 @@ private:
     // std::ofstream outfile_;
 };
 
-SavedData::SavedData():Node("saved_data"), data_count_(6)
+SavedData::SavedData():Node("saved_data"), data_count_(1)
 {
     roi_.x_offset = -3000;
     roi_.y_offset = -3000;

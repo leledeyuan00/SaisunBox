@@ -169,6 +169,7 @@ bool SaisunCom::isConnect(uint8_t * buf,int * bytes_read)
 
 	*bytes_read = recv(connfd_, buf, 2048, 0);
 	printf("recv msg from client: %s\n", buf);
+	return true;
 }
 
 void SaisunCom::reconnect(void)

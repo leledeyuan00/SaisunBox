@@ -109,7 +109,7 @@ void SaisunState::halt(void)
 {
     saisunCom_->halt();
     comThread_.join();
-    posThread_.join();
+    // posThread_.join();
 }
 
 void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
