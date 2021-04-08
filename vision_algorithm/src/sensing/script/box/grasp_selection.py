@@ -22,8 +22,13 @@ def compute_grasp_scores(single_plane, resolution, filter_z_max):
     max_y = max(points2[:, 1])
     rect_area = (max_x - min_x) * (max_y - min_y)
 
+    mean_x = data_mean[0]
+    mean_y = data_mean[1]
+
+
     # 5. score computation
-    score_area = resolution*resolution*points.shape[0]/rect_area  #  area ratio, resolution*resolution approximates to unit area
+    # score_area = resolution*resolution*points.shape[0]/rect_area  #  area ratio, resolution*resolution approximates to unit area
+    score_area = mean_x
     score_zval = -data_mean[2]  # / filter_z_max
     score_pnum = points.shape[0]
 
@@ -36,18 +41,18 @@ def get_grasp_plane_id_hard (plane_scores):
     plane_scores = np.array(plane_scores)
 
     # 1. sort by score_pnum
-    plane_scores1 = plane_scores[:, 2]
-    top_k1_idx = plane_scores1.argsort()[::-1]
-    grasp_plane_ids = top_k1_idx
+    # plane_scores1 = plane_scores[:, 2]
+    # top_k1_idx = plane_scores1.argsort()[::-1]
+    # grasp_plane_ids = top_k1_idx
 
     # 2. sort by score_area_ratio
-    plane_scores2 = plane_scores[top_k1_idx, 0]
-    top_k1_idx2 = plane_scores2.argsort()[::-1]
-    top_k1_idx3 = top_k1_idx[top_k1_idx2]
-    grasp_plane_ids = grasp_plane_ids[top_k1_idx2]
+    plane_scores2 = plane_scores[:, 0]
+    top_k1_idx2 = plane_scores2.argsort()
+    # top_k1_idx3 = top_k1_idx[top_k1_idx2]
+    grasp_plane_ids = top_k1_idx2
 
     # 3. sort by score_zval
-    plane_scores3 = plane_scores[top_k1_idx3, 1]
+    plane_scores3 = plane_scores[grasp_plane_ids, 1]
     top_k1_idx4 = plane_scores3.argsort()[::-1]
     grasp_plane_ids = grasp_plane_ids[top_k1_idx4]
 
@@ -88,6 +93,19 @@ def sort_with_height(cluster_planes, params):
     for plane in cluster_planes:
         plane_scores.append(compute_grasp_scores(plane, resolution, filter_z_max))
 
+    # 2. zmax
+    zmax = -10000
+    for i in range(len(plane_scores)):
+        if zmax <= plane_scores[i][1]:
+            zmax = plane_scores[i][1]
+
+    for i in range(len(plane_scores)):
+        if (zmax - 0.2) <= plane_scores[i][1]:
+            plane_scores[i][1] = 2
+        else:
+            plane_scores[i][1] = 1
+
     # 2. sort_with_height/occlusion/plane_size
     grasp_plane_ids = get_grasp_plane_id_hard(plane_scores)
+
     return grasp_plane_ids

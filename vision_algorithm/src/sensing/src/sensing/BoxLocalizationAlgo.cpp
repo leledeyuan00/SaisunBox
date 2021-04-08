@@ -11,6 +11,11 @@ PyObject* pyCreatePointCloudColorArg(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
 
 BoxLocalizationAlgo::BoxLocalizationAlgo() {
     init();
+    #ifdef TEST_ALGORITHM
+        run_once_ = true;
+    #else 
+        run_once_ = false;
+    #endif
 }
 
 BoxLocalizationAlgo::~BoxLocalizationAlgo() {
@@ -24,16 +29,17 @@ void BoxLocalizationAlgo::config(RegionOfInterest roi) {
 
 int BoxLocalizationAlgo::init(){
     Py_Initialize(); 
+    PyEval_InitThreads();
 
     // this macro is defined be NumPy and must be included
     import_array();
 
     // add the current folder to the Python's PATH
     PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append(\"/home/jiang/saisun_ws/install/sensing/script/sensing/box\")");
+    PyRun_SimpleString("sys.path.append(\"/home/jiangxin/saisun_ws/install/sensing/script/sensing/box\")");
 
     // load our python script
-    pyModule_ = PyImport_ImportModule("detect_interface"); 
+    pyModule_ = PyImport_ImportModule("stack_detection"); 
     if (pyModule_ == NULL) {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get python module failed!");
     }
@@ -41,7 +47,7 @@ int BoxLocalizationAlgo::init(){
     PyObject *pyDict = PyModule_GetDict(pyModule_);
 
     // grab the functions we are interested in
-    pyFunc_ = PyDict_GetItemString(pyDict, "detectWithImg");
+    pyFunc_ = PyDict_GetItemString(pyDict, "detect");
     if (pyFunc_ == NULL) {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Get python function failed!");
     }
@@ -51,6 +57,16 @@ int BoxLocalizationAlgo::init(){
 
 bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat color_img, 
     geometry_msgs::msg::Pose &pose, double &width, double &height) {
+    
+
+    if(!run_once_)
+    {
+        PyEval_ReleaseLock();
+        run_once_ = true;
+    }
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
 
     float *cloud_m = NULL;
     PyObject* pCloud = pyCreatePointCloudColorArg(cloud_ptr, cloud_m);
@@ -58,11 +74,11 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat 
     PyObject* pImag = pyCreateImageArg(color_img, img_m);
     PyObject* pMinZ =  PyFloat_FromDouble(roi_.z_offset * 1.0 /1000);
     PyObject* pMaxZ =  PyFloat_FromDouble((roi_.z_offset + roi_.depth) * 1.0 / 1000);
-    PyObject *pArgs = PyTuple_New(4);
+    PyObject *pArgs = PyTuple_New(2);
     PyTuple_SetItem(pArgs, 0, pCloud); 
     PyTuple_SetItem(pArgs, 1, pImag);
-    PyTuple_SetItem(pArgs, 2, pMinZ);
-    PyTuple_SetItem(pArgs, 3, pMaxZ);
+    // PyTuple_SetItem(pArgs, 2, pMinZ);
+    // PyTuple_SetItem(pArgs, 3, pMaxZ);
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "z: [%f %f]", roi_.z_offset / 1000.0, (roi_.z_offset + roi_.depth)/1000.0);
 
@@ -99,6 +115,7 @@ bool BoxLocalizationAlgo::getObjectPose(PointCloudColor::Ptr cloud_ptr, cv::Mat 
     delete[] img_m;
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Python script finished!");
+    PyGILState_Release(gstate);
     return success;
 }
 

@@ -27,7 +27,7 @@ def hough_transformation_gpu_impl(edges_pts, accumulator_array, pmax, thetas, n_
         pts = edges_pts[pts_idx]
         theta = thetas[theta_idx]
         p = pts[0] * math.cos(theta * np.pi / 180.0) + pts[1] * math.sin(theta * np.pi / 180.0)
-        cuda.atomic.add(accumulator_array[theta_idx], int(p) + int(pmax[0] / 2.), 1)
+        cuda.atomic.add(accumulator_array[theta_idx], int(p + pmax[0]), 1)
     return
 
 @cuda.jit()
@@ -142,9 +142,9 @@ def egde_detect(img, model_path):
     mask = img > preprcoess_threshold
     rgb_im_binary[mask] = 255
 
-    # cv2.imshow('result', rgb_im_binary)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+#     cv2.imshow('result', rgb_im_binary)
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
 
     edges = edge_detection.detectEdges(np.float32(rgb_im_binary) / 255.0)
     orimap = edge_detection.computeOrientation(edges)
@@ -152,11 +152,12 @@ def egde_detect(img, model_path):
 
     edges *= 255
     edges = edges.astype(np.uint8)
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, (5, 5), iterations=6)
-    edges = cv2.threshold(edges, 40, 255, cv2.THRESH_BINARY)[1]
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, (5, 5), iterations=4)
+    edges = cv2.threshold(edges, 30, 255, cv2.THRESH_BINARY)[1]
 
     pmax = np.sqrt(np.square(len(edges)) + np.square(len(edges[0])))
     accumulator_array = np.array([[0 for _ in range(2 * int(pmax) + 1)] for _ in range(-89, 91)])
+    # print("accumulaor:", accumulator_array.shape)
     accumulator_array = hough_transformation_gpu(accumulator_array, edges, pmax)
     if (accumulator_array != 0.).any():
         theta_idx, p_idx = np.where(accumulator_array > 0.)
@@ -172,7 +173,7 @@ def egde_detect(img, model_path):
         p_idx = p_idx[mask]
 
         theta = theta_idx - 89
-        p = p_idx - pmax / 2
+        p = p_idx - pmax
         bins, hist = cir_run_avg(theta, -89, 90, BIN_SIZE)
 
         filtered_theta, filtered_p = [], []
@@ -213,9 +214,9 @@ def egde_detect(img, model_path):
 
     # print(time.time() - time1)
 
-    # cv2.imshow('result', result_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+#     cv2.imshow('result', result_img)
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
     #
     # cv2.imwrite("result3.bmp", result_img)
     return result_img

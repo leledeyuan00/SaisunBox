@@ -15,6 +15,39 @@ def removing_plane_bg(cloud, plane_paras, dist2plane):
     cloud_out.from_array(outlier_pts)
     return cloud_out
 
+# function for removing the planes nearly perpendicular to the ground planes
+# input_pts: np.array (N*3)
+# params: parameter definition in config.py
+# return: True for nearly perpendicular, False for not
+def is_perp_plane(single_plane, ground_paras):
+    # 1. get ground plane's normal
+    # ground_paras = params.filter_ground_plane_para
+    ground_normal = ground_paras[0:3]
+
+    # 2. filter the plane who are perpendicular to the ground planes
+    # 2.1. pre-process
+    single_plane = single_plane[:, :3]
+    pts_center = np.mean(single_plane, axis=0)
+    normalized_pts = single_plane - pts_center  # normalization
+
+    # 2.2. PCA analysis
+    H = np.dot(normalized_pts.T, normalized_pts)
+    eigenvectors, eigenvalues, eigenvectors_t = np.linalg.svd(H)  # H = U S V
+
+    # 3. local projection
+    plane_normal = eigenvectors[:, 2]
+
+    # 4. computing the normal angle
+    angle = np.dot(ground_normal, plane_normal)
+    angle = np.arccos(angle)
+    angle = 180*angle/3.141593
+    # print("angle1: ", angle)
+    diff = np.abs(angle - 90)
+    if(diff < 20):
+        # print("angle2: ", diff)
+        return 1
+    return 0
+        
 
 # function for scene plane segmentation
 # input_pts: np.array (N*3)
@@ -24,7 +57,7 @@ def plane_extract(input_pts, params):
     # 1. transform input_pts to pcl.PointCloud
     cloud_in = pcl.PointCloud()
     cloud_in.from_array(input_pts)
-    # print('input successful...')
+    # print('input successful...')   
 
     # 2. Uniform Downsampling
     uni_down_Filter = cloud_in.make_voxel_grid_filter()
@@ -36,8 +69,8 @@ def plane_extract(input_pts, params):
 
     # 3. Filtering by ROI
     val_cond = cloud_ds.make_ConditionAnd()
-    # val_cond.add_Comparison2('z', pcl.CythonCompareOp_Type.GT, params.filter_z_max)
-    # val_cond.add_Comparison2('z', pcl.CythonCompareOp_Type.LT, params.filter_z_min)
+    val_cond.add_Comparison2('z', pcl.CythonCompareOp_Type.GT, params.filter_z_max)
+    val_cond.add_Comparison2('z', pcl.CythonCompareOp_Type.LT, params.filter_z_min)
     val_cond.add_Comparison2('y', pcl.CythonCompareOp_Type.GT, params.filter_y_max)
     val_cond.add_Comparison2('y', pcl.CythonCompareOp_Type.LT, params.filter_y_min)
     val_cond_Filter = cloud_ds.make_ConditionalRemoval(val_cond)
@@ -46,8 +79,8 @@ def plane_extract(input_pts, params):
 
 
     # 4. Filtering by plane_para
-    cloud_ds_zf = removing_plane_bg(cloud_ds_zf, params.filter_ground_plane_para, params.dist2plane)
-    cloud_ds_zf = removing_plane_bg(cloud_ds_zf, params.filter_slope_plane_para, params.dist2plane)
+    # cloud_ds_zf = removing_plane_bg(cloud_ds_zf, params.filter_ground_plane_para, params.dist2plane)
+    # cloud_ds_zf = removing_plane_bg(cloud_ds_zf, params.filter_slope_plane_para, params.dist2plane)
     # np.savetxt("fz.txt", cloud_ds_zf.to_array())
 
     # 4. filter outlier
@@ -60,7 +93,8 @@ def plane_extract(input_pts, params):
 
     # 5. Segmentation based on region growing
     tree = cloud_ds_zf_sor.make_kdtree()
-    segment = cloud_ds_zf_sor.make_RegionGrowing(ksearch=params.KNN_number) 
+    # segment = cloud_ds_zf_sor.make_RegionGrowing(ksearch=params.KNN_number) 
+    segment = cloud_ds_zf_sor.make_RegionGrowing(searchRadius=params.Radius_clustering)
     seg_min_number = params.seg_min_number
     seg_max_number = params.seg_max_number
     segment.set_MinClusterSize(seg_min_number)

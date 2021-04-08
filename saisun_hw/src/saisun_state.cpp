@@ -26,7 +26,7 @@ void SaisunState::start(void)
 {
     saisunCom_->start();
     comThread_ = std::thread(&SaisunState::run, this);
-    posThread_ = std::thread(&SaisunState::robot_pose_req,this);
+    // posThread_ = std::thread(&SaisunState::robot_pose_req,this);
 }
 
 void SaisunState::run(void)
@@ -36,14 +36,15 @@ void SaisunState::run(void)
 	bzero(buf, 2048);
     while (saisunCom_->isAlive())
     {
+        bzero(buf, 2048);
         if (saisunCom_->isConnect(buf,&bytes_read))
         {
             unpack(buf,bytes_read);
         }
-        else if (saisunCom_->isAlive())
-        {
-            saisunCom_->reconnect();
-        }
+        // else if (saisunCom_->isAlive())
+        // {
+        //     saisunCom_->reconnect();
+        // }
     }
     // wait for some traffic 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -97,8 +98,8 @@ void SaisunState::robot_pose_res(uint8_t *buf_body, uint32_t buf_len)
 
     for (size_t i = 0; i < robot_pose_.size(); i++)
     {
-        memcpy(&len,&buf_body[offset],sizeof(len));
-        memcpy(&temp_f,&len,sizeof(len));
+        cmemcpy(&len,&buf_body[offset],sizeof(len));
+        cmemcpy(&temp_f,&len,sizeof(len));
         robot_pose_[i] = temp_f;
         offset += sizeof(len);
     }
@@ -108,7 +109,7 @@ void SaisunState::halt(void)
 {
     saisunCom_->halt();
     comThread_.join();
-    posThread_.join();
+    // posThread_.join();
 }
 
 void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
@@ -122,27 +123,29 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
 
     uint8_t temp[max_buff_len];
     memset(temp,0,sizeof(max_buff_len));
-    memcpy(&temp,buf,buf_len);
+    cmemcpy(&temp[0],buf,buf_len);
 
-    if (use_net_sequence_)
-    {
-        uint32_t len;
-        uint32_t offset= 0;
-        while (offset + sizeof(len) <= net_com_len)
-        {
-            memcpy(&len,&temp[offset],sizeof(len));
-            len = htonl(len);
-            memcpy(&temp[offset],&len,sizeof(len));
-            offset += sizeof(len);
-        }
-    }
+    // if (use_net_sequence_)
+    // {
+    //     uint32_t len;
+    //     uint32_t offset= 0;
+    //     while (offset + sizeof(len) <= net_com_len)
+    //     {
+    //         memcpy(&len,&temp[offset],sizeof(len));
+    //         len = htonl(len);
+    //         memcpy(&temp[offset],&len,sizeof(len));
+    //         offset += sizeof(len);
+    //     }
+    // }
 
-    memcpy(&robot_version_.major_version,&temp[6],sizeof(uint16_t));
-    memcpy(&robot_version_.minor_version,&temp[4],sizeof(uint16_t));
+    cmemcpy(&robot_version_.major_version,&temp[6],sizeof(uint16_t));
+    cmemcpy(&robot_version_.minor_version,&temp[4],sizeof(uint16_t));
+
 
     uint16_t check_bytes = 0x0001;
     uint16_t receive_check_bytes;
-    memcpy(&receive_check_bytes,&temp[10],sizeof(check_bytes));
+    receive_check_bytes = ((uint16_t)temp[10]) | ((uint16_t)temp[11] << 8);
+    // memcpy(&receive_check_bytes,&temp[10],sizeof(check_bytes));
     if (receive_check_bytes != check_bytes)
     {
         std::cout << "\033[33m" << "Receive an irregular message. Receive type is 0x"<< receive_check_bytes <<", try switch net_sequence in config.yaml" << "\033[0m" <<std::endl;
@@ -151,7 +154,11 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
     if (temp[8] == 0x01) // robot req
     {
         uint32_t receive_buf_len;
-        memcpy(&receive_buf_len,&temp[12],sizeof(receive_buf_len));
+        receive_buf_len =  ((uint32_t)temp[12] << 0)|
+                           ((uint32_t)temp[13] << 8)|
+                           ((uint32_t)temp[14] << 16)|
+                           ((uint32_t)temp[15] << 24);
+        // memcpy(&receive_buf_len,&temp[12],sizeof(receive_buf_len));
         if (receive_buf_len != (buf_len - 16))
         {
             std::cout << receive_buf_len << "ERROR BUFLEN" << (buf_len - 16) << std::endl;
@@ -162,18 +169,21 @@ void SaisunState::unpack(uint8_t * buf, uint32_t buf_len)
         {
         case receiveMessageTypes::GET_SYNC:
         {
+            printf("I'm in sync\r\n");
             uint8_t body = (uint8_t)vision_state_;
             pack(SEND_SYNC,&body,1);
             break;
         }
         case receiveMessageTypes::GET_POSE:
         {
+            printf("I'm in pose\r\n");
             robot_pose_res(&temp[16],(net_com_len - 16));
             break;
         }
         default:
         {
-            memcpy(receive_body_,&temp[16],(net_com_len - 16));
+            printf("I'm in command task \r\n");
+            cmemcpy(receive_body_,&temp[16],(net_com_len - 16));
             is_new_message_ = true;
             break;
         }
@@ -196,21 +206,21 @@ void SaisunState::pack(sendMessageTypes cmd,uint8_t *body, uint32_t body_len)
         vision[0],vision[1],vision[2],vision[3],
         0x80,(uint8_t)cmd,0x00,0x00,
     };
-    memcpy(&temp[3*sizeof(head_len)],&body_len,sizeof(body_len));
-    memcpy(&temp[4*sizeof(head_len)],body,body_len);
+    cmemcpy(&temp[3*sizeof(head_len)],&body_len,sizeof(body_len));
+    cmemcpy(&temp[4*sizeof(head_len)],body,body_len);
     
-    if (use_net_sequence_)
-    {
-        uint32_t len;
-        uint32_t offset= 0;
-        while (offset + sizeof(len) <= all_len)
-        {
-            memcpy(&len,&temp[offset],sizeof(len));
-            len = htonl(len);
-            memcpy(&temp[offset],&len,sizeof(len));
-            offset += sizeof(len);
-        }
-    }    
+    // if (use_net_sequence_)
+    // {
+    //     uint32_t len;
+    //     uint32_t offset= 0;
+    //     while (offset + sizeof(len) <= all_len)
+    //     {
+    //         cmemcpy(&len,&temp[offset],sizeof(len));
+    //         len = htonl(len);
+    //         memcpy(&temp[offset],&len,sizeof(len));
+    //         offset += sizeof(len);
+    //     }
+    // }    
     
     saisunCom_->write_sock(temp, all_len);
 }
@@ -258,7 +268,7 @@ bool SaisunState::get_robot_cmd(receiveMessageTypes &cmd, uint8_t *msg)
     if(is_new_message)
     {
         cmd = receive_type_;
-        memcpy(msg,receive_body_,8);
+        cmemcpy(msg,receive_body_,8);
         is_new_message_ = false;
     }
     return is_new_message;

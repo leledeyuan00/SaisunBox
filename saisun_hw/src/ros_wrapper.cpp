@@ -39,6 +39,7 @@ void SaisunWrapper::ros_init(void)
     init_goal_done_ = true;
     trig_goal_done_ = true;
     result_goal_done_ = true;
+    RCLCPP_INFO(this->get_logger(),"Construct is over");
 }
 
 void SaisunWrapper::init(void)
@@ -54,6 +55,7 @@ void SaisunWrapper::start(void)
     control_loop_thread_.reset(new std::thread(
         std::bind(&SaisunWrapper::control_loop,this)));
     saisunState_->start();
+    RCLCPP_INFO(this->get_logger(),"Construct is over");
 }
 
 void SaisunWrapper::halt(void)
@@ -313,6 +315,7 @@ void SaisunWrapper::action_start(receiveMessageTypes cmd, uint8_t *msg)
 
 void SaisunWrapper::control_loop(void)
 {
+    RCLCPP_INFO(this->get_logger(),"I'm in control loop");
     wait_vision_node();
     while (rclcpp::ok())
     {
