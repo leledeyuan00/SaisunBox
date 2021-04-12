@@ -4,6 +4,10 @@
 
 `colcon build`
 
+### 环境
+
+`. install/setup.bash`
+
 ### 启动 Saisun_driver Package
 
 `ros2 launch saisun_hw saisun_hw.launch`
