@@ -16,3 +16,7 @@
 ### 启动算法
 
 `ros2 run sensing vision_node`
+
+### 项目介绍
+
+[项目介绍-v2.0](http://www.git-hitsz.cn/jiang/saisunbox/-/tags/v2.0)
